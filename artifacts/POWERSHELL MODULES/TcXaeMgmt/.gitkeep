@@ -1,0 +1,5 @@
+# Place TcXaeMgmt PowerShell module files here
+# Required files:
+# - TcXaeMgmt.psd1
+# - TcXaeMgmt.psm1
+# - Other module dependencies

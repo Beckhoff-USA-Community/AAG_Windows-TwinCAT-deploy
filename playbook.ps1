@@ -17,15 +17,20 @@ Write-Host ""
 
 # Copy packagesoffline folder
 function Step-CopyPackagesOffline {
-    Write-Host "Copying packagesoffline folder..." -ForegroundColor Green
+    Write-Host "Copying TcPkg packages folder..." -ForegroundColor Green
 
-    $sourcePath = Join-Path $ArtifactsPath "packagesoffline"
-    $targetPath = "C:\packagesoffline"
+    $tcpkgBasePath = Join-Path $ArtifactsPath "TCPKG PACKAGES"
+    $packagesFolders = Get-ChildItem -Path $tcpkgBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
-    if (-not (Test-Path $sourcePath)) {
-        Write-Error "Source path not found: $sourcePath"
+    if ($packagesFolders.Count -eq 0) {
+        Write-Error "No package folders found in: $tcpkgBasePath"
         return $false
     }
+
+    $sourcePath = $packagesFolders[0].FullName
+    $targetPath = "C:\packagesoffline"
+
+    Write-Host "  Found packages folder: $($packagesFolders[0].Name)"
 
     Write-Host "  Source: $sourcePath"
     Write-Host "  Target: $targetPath"
@@ -83,27 +88,44 @@ function Step-InstallPackages {
     return $true
 }
 
-# Install TcXaeMgmt PowerShell module
+# Install PowerShell modules
 function Step-InstallTcXaeMgmt {
-    Write-Host "Installing TcXaeMgmt PowerShell module..." -ForegroundColor Green
+    Write-Host "Installing PowerShell modules..." -ForegroundColor Green
 
-    $sourcePath = Join-Path $ArtifactsPath "TcXaeMgmt"
-    $targetPath = "C:\Program Files\WindowsPowerShell\7\Modules\TcXaeMgmt"
+    $modulesBasePath = Join-Path $ArtifactsPath "POWERSHELL MODULES"
+    $modulesFolders = Get-ChildItem -Path $modulesBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
-    if (-not (Test-Path $sourcePath)) {
-        Write-Error "TcXaeMgmt module not found: $sourcePath"
+    if ($modulesFolders.Count -eq 0) {
+        Write-Error "No PowerShell modules found in: $modulesBasePath"
         return $false
     }
 
-    Write-Host "  Source: $sourcePath"
-    Write-Host "  Target: $targetPath"
+    $success = $true
+    foreach ($moduleFolder in $modulesFolders) {
+        $sourcePath = $moduleFolder.FullName
+        $targetPath = "C:\Program Files\WindowsPowerShell\7\Modules\$($moduleFolder.Name)"
 
-    if (Test-Path $targetPath) {
-        Remove-Item $targetPath -Recurse -Force
+        Write-Host "  Installing module: $($moduleFolder.Name)"
+
+        Write-Host "    Source: $sourcePath"
+        Write-Host "    Target: $targetPath"
+
+        try {
+            if (Test-Path $targetPath) {
+                Remove-Item $targetPath -Recurse -Force
+            }
+            New-Item -Path (Split-Path $targetPath) -ItemType Directory -Force | Out-Null
+            Copy-Item $sourcePath $targetPath -Recurse
+            Write-Host "    ✓ $($moduleFolder.Name) module installed successfully" -ForegroundColor Green
+        } catch {
+            Write-Error "Failed to install module $($moduleFolder.Name): $_"
+            $success = $false
+        }
     }
-    New-Item -Path (Split-Path $targetPath) -ItemType Directory -Force | Out-Null
-    Copy-Item $sourcePath $targetPath -Recurse
-    Write-Host "  ✓ TcXaeMgmt module installed successfully" -ForegroundColor Green
+
+    if (-not $success) {
+        return $false
+    }
 
     return $true
 }
@@ -242,13 +264,18 @@ function Step-SetTwinCATRunMode {
 function Step-CopyTwinCATBoot {
     Write-Host "Copying TwinCAT boot folder..." -ForegroundColor Green
 
-    $sourcePath = Join-Path $ArtifactsPath "TwinCAT RT (x64)"
-    $targetPath = "C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot"
+    $bootBasePath = Join-Path $ArtifactsPath "TWINCAT BOOT FOLDER"
+    $bootFolders = Get-ChildItem -Path $bootBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
-    if (-not (Test-Path $sourcePath)) {
-        Write-Error "TwinCAT boot source not found: $sourcePath"
+    if ($bootFolders.Count -eq 0) {
+        Write-Error "No TwinCAT boot folders found in: $bootBasePath"
         return $false
     }
+
+    $sourcePath = $bootFolders[0].FullName
+    $targetPath = "C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot"
+
+    Write-Host "  Found boot folder: $($bootFolders[0].Name)"
 
     Write-Host "  Source: $sourcePath"
     Write-Host "  Target: $targetPath"
@@ -267,20 +294,25 @@ function Step-CopyTwinCATBoot {
 function Step-CopyHMIProject {
     Write-Host "Copying HMI project to service folder..." -ForegroundColor Green
 
-    $sourcePath = Join-Path $ArtifactsPath "HMI"
-    $targetPath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service"
+    $hmiBasePath = Join-Path $ArtifactsPath "HMI PROJECTS"
+    $hmiFolders = Get-ChildItem -Path $hmiBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
-    if (-not (Test-Path $sourcePath)) {
-        Write-Error "HMI project source not found: $sourcePath"
+    if ($hmiFolders.Count -eq 0) {
+        Write-Error "No HMI project folders found in: $hmiBasePath"
         return $false
     }
+
+    $sourcePath = $hmiFolders[0].FullName
+    $targetPath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service"
+
+    Write-Host "  Found HMI project: $($hmiFolders[0].Name)"
 
     Write-Host "  Source: $sourcePath"
     Write-Host "  Target: $targetPath"
 
     New-Item -Path $targetPath -ItemType Directory -Force | Out-Null
     Copy-Item "$sourcePath\*" $targetPath -Recurse -Force
-    Write-Host "  ✓ HMI project copied successfully" -ForegroundColor Green
+    Write-Host "  ✓ HMI project '$($hmiFolders[0].Name)' copied successfully" -ForegroundColor Green
 
     return $true
 }
@@ -289,7 +321,7 @@ function Step-CopyHMIProject {
 function Step-CopyHMIConfig {
     Write-Host "Copying HMI Server configuration..." -ForegroundColor Green
 
-    $sourceFile = Join-Path $ArtifactsPath "TcHmiSrv.Service.Config.json"
+    $sourceFile = Join-Path $ArtifactsPath "HMI PROJECTS\TcHmiSrv.Service.Config.json"
     $targetPath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server"
     $targetFile = Join-Path $targetPath "TcHmiSrv.Service.Config.json"
 

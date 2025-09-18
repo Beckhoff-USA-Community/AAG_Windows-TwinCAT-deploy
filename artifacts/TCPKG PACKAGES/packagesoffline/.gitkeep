@@ -1,0 +1,5 @@
+# Place TwinCAT .XAR package files here
+# Required files:
+# - TwinCAT.Standard.XAR
+# - TF20000.HMIServer.XAR
+# - TF1200.UiClient.XAR

@@ -1,14 +1,17 @@
 # Exclude all contents of artifacts subdirectories but keep the folder structure
-artifacts/HMI/*
-artifacts/TcXaeMgmt/*
-artifacts/packagesoffline/*
-artifacts/TwinCAT RT (x64)/*
+artifacts/TCPKG PACKAGES/*/**
+artifacts/POWERSHELL MODULES/*/**
+artifacts/TWINCAT BOOT FOLDER/*/**
+artifacts/HMI PROJECTS/*/**
 
-# Keep the .gitkeep files to preserve folder structure
-!artifacts/HMI/.gitkeep
-!artifacts/TcXaeMgmt/.gitkeep
-!artifacts/packagesoffline/.gitkeep
-!artifacts/TwinCAT RT (x64)/.gitkeep
+# Keep the .gitkeep files to preserve folder structure (flexible folder names)
+!artifacts/TCPKG PACKAGES/*/.gitkeep
+!artifacts/POWERSHELL MODULES/*/.gitkeep
+!artifacts/TWINCAT BOOT FOLDER/*/.gitkeep
+!artifacts/HMI PROJECTS/*/.gitkeep
 
-# Keep the config file
-!artifacts/TcHmiSrv.Service.Config.json
+# Keep README file for documentation
+!artifacts/README.md
+
+# Keep the HMI config file (must be named exactly this)
+!artifacts/HMI PROJECTS/TcHmiSrv.Service.Config.json
