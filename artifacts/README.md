@@ -36,8 +36,7 @@ TCPKG PACKAGES/
     ├── TF20000.HMIServer.XAR
     ├── TF1200.UiClient.XAR
     ├── [other .XAR packages]
-    ├── [.nupkg packages]
-    └── [any TwinCAT package format]
+    └── [any TwinCAT package]
 ```
 
 ### How to Obtain
@@ -71,7 +70,13 @@ The script will:
 <summary><h2>🔧 POWERSHELL MODULES</h2></summary>
 
 ### Purpose
-Contains PowerShell modules required for TwinCAT management and automation.
+Contains PowerShell modules required for TwinCAT management and automation. While not strictly required, this playbook script utilizes the [TcXaeMgmt module](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/3972231819.html?id=8731138690123386389) and its [Set-RTimeCpuSettings](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/15420204939.html?id=2616515314222608422) commandlet for CPU core isolation configuration.
+
+**Alternative Approach**: Core isolation can be configured without this module using [this example script](https://github.com/Beckhoff/windows-tools/blob/main/ConfigureBasicSystem_Sample/TwinCAT/Activate_Core_Isolation.ps1).
+
+**Additional Resources**: For a comprehensive list of TcXaeMgmt features, see the [official documentation](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/11227002123.html?id=4658283848064243519).
+
+**Extensibility**: Additional PowerShell modules can be added to this directory and will be automatically installed by the playbook.
 
 ### Required Structure
 Place PowerShell module folders (can contain multiple modules):
@@ -109,10 +114,10 @@ The script will:
 <summary><h2>⚙️ TWINCAT BOOT FOLDER</h2></summary>
 
 ### Purpose
-Contains TwinCAT runtime configuration that defines the system's operational behavior.
+Contains TwinCAT runtime configuration that defines the system's operational behavior and project-specific settings.
 
 ### Required Structure
-Place a single boot configuration folder (name can vary, e.g., `TwinCAT RT (x64)`, `TwinCAT RT (x86)`, `MyProject-Boot`, etc.):
+Place a single boot configuration folder (name can vary, e.g., `TwinCAT RT (x64)`, `TwinCAT RT (x86)`):
 
 ```
 TWINCAT BOOT FOLDER/
@@ -132,6 +137,8 @@ TWINCAT BOOT FOLDER/
 3. Copy the entire platform folder (e.g., `TwinCAT RT (x64)` or `TwinCAT RT (x86)`)
 4. **Reference**: [Beckhoff TwinCAT Boot Documentation](https://infosys.beckhoff.com/content/1033/tc3_grundlagen/6137492619.html?id=8038354968708727216)
 
+**From existing TwinCAT system:**
+Copy contents from: `C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot\`
 
 **Important Notes:**
 - Boot folder is generated after a successful build and activation
@@ -153,7 +160,7 @@ The script will:
 <summary><h2>🖥️ HMI PROJECTS</h2></summary>
 
 ### Purpose
-Contains TwinCAT HMI projects and server configuration for web-based interfaces.
+Contains TwinCAT HMI projects and server configuration for web-based interfaces using TwinCAT HMI (TF2000).
 
 ### Required Structure
 ```
@@ -178,7 +185,10 @@ HMI PROJECTS/
 
 **HMI Server Configuration:**
 1. **TcHmiSrv.Service.Config.json**: Copy from `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\`
-2. This file contains tells the HMI service to start the HMI project instance
+2. This file configures the HMI service to start the appropriate HMI project instance
+
+**Alternative Method:**
+Copy from an existing working HMI system using the same procedure (stop service → copy → restart)
 
 
 ### Contents Description
