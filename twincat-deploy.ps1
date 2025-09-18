@@ -1,4 +1,4 @@
-# TwinCAT Bootstrap Playbook
+# TwinCAT Deployment Script
 # Automates the installation and configuration of TwinCAT on CX20x3 Windows 11 systems
 # Based on: StepsToBootStrapTwinCATInstall.txt
 
@@ -8,29 +8,54 @@ param(
 
 # Global variables
 $ScriptRoot = $PSScriptRoot
-$ArtifactsPath = Join-Path $ScriptRoot "artifacts"
+$FilesPath = Join-Path $ScriptRoot "files"
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "TwinCAT Bootstrap Playbook" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
+# Initialize logging
+$LogFile = Join-Path $ScriptRoot "twincat-deploy.log"
+$StartTime = Get-Date
+
+# Logging function
+function Write-Log {
+    param(
+        [string]$Message,
+        [string]$Level = "INFO",
+        [string]$Color = "White"
+    )
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $logEntry = "[$timestamp] [$Level] $Message"
+
+    # Write to console with color
+    Write-Host $Message -ForegroundColor $Color
+
+    # Write to log file
+    Add-Content -Path $LogFile -Value $logEntry -Encoding UTF8
+}
+
+# Start deployment
+Write-Log "========================================" "INFO" "Cyan"
+Write-Log "TwinCAT Deployment Script" "INFO" "Cyan"
+Write-Log "========================================" "INFO" "Cyan"
+Write-Log "Started at: $StartTime" "INFO" "Yellow"
+Write-Log "Log file: $LogFile" "INFO" "Yellow"
 Write-Host ""
 
 # Copy packagesoffline folder
 function Step-CopyPackagesOffline {
-    Write-Host "Copying TcPkg packages folder..." -ForegroundColor Green
+    Write-Log "Copying TcPkg packages folder..." "INFO" "Green"
 
-    $tcpkgBasePath = Join-Path $ArtifactsPath "TCPKG PACKAGES"
+    $tcpkgBasePath = Join-Path $FilesPath "TCPKG PACKAGES"
     $packagesFolders = Get-ChildItem -Path $tcpkgBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
     if ($packagesFolders.Count -eq 0) {
-        Write-Error "No package folders found in: $tcpkgBasePath"
+        Write-Log "No package folders found in: $tcpkgBasePath" "ERROR" "Red"
         return $false
     }
 
     $sourcePath = $packagesFolders[0].FullName
     $targetPath = "C:\packagesoffline"
 
-    Write-Host "  Found packages folder: $($packagesFolders[0].Name)"
+    Write-Log "  Found packages folder: $($packagesFolders[0].Name)" "INFO" "White"
 
     Write-Host "  Source: $sourcePath"
     Write-Host "  Target: $targetPath"
@@ -68,7 +93,7 @@ function Step-InstallPackages {
 
     $packages = @(
         "TwinCAT.Standard.XAR",
-        "TF20000.HMIServer.XAR",
+        "TF2000.HMIServer.XAR",
         "TF1200.UiClient.XAR"
     )
 
@@ -92,7 +117,7 @@ function Step-InstallPackages {
 function Step-InstallTcXaeMgmt {
     Write-Host "Installing PowerShell modules..." -ForegroundColor Green
 
-    $modulesBasePath = Join-Path $ArtifactsPath "POWERSHELL MODULES"
+    $modulesBasePath = Join-Path $FilesPath "POWERSHELL MODULES"
     $modulesFolders = Get-ChildItem -Path $modulesBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
     if ($modulesFolders.Count -eq 0) {
@@ -264,7 +289,7 @@ function Step-SetTwinCATRunModeOnBoot {
 function Step-CopyTwinCATBoot {
     Write-Host "Copying TwinCAT boot folder..." -ForegroundColor Green
 
-    $bootBasePath = Join-Path $ArtifactsPath "TWINCAT BOOT FOLDER"
+    $bootBasePath = Join-Path $FilesPath "TWINCAT BOOT FOLDER"
     $bootFolders = Get-ChildItem -Path $bootBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
     if ($bootFolders.Count -eq 0) {
@@ -294,7 +319,7 @@ function Step-CopyTwinCATBoot {
 function Step-CopyHMIProject {
     Write-Host "Copying HMI project to service folder..." -ForegroundColor Green
 
-    $hmiBasePath = Join-Path $ArtifactsPath "HMI PROJECTS"
+    $hmiBasePath = Join-Path $FilesPath "HMI PROJECTS"
     $hmiFolders = Get-ChildItem -Path $hmiBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
     if ($hmiFolders.Count -eq 0) {
@@ -321,7 +346,7 @@ function Step-CopyHMIProject {
 function Step-CopyHMIConfig {
     Write-Host "Copying HMI Server configuration..." -ForegroundColor Green
 
-    $sourceFile = Join-Path $ArtifactsPath "HMI PROJECTS\TcHmiSrv.Service.Config.json"
+    $sourceFile = Join-Path $FilesPath "HMI PROJECTS\TcHmiSrv.Service.Config.json"
     $targetPath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server"
     $targetFile = Join-Path $targetPath "TcHmiSrv.Service.Config.json"
 
@@ -359,13 +384,13 @@ function Step-RebootSystem {
 
 # Main execution
 function Main {
-    Write-Host "Starting TwinCAT bootstrap process..."
+    Write-Log "Starting TwinCAT deployment process..." "INFO" "White"
     Write-Host ""
 
-    # Verify artifacts folder exists
-    if (-not (Test-Path $ArtifactsPath)) {
-        Write-Error "Artifacts folder not found: $ArtifactsPath"
-        Write-Error "Please ensure the script is run from the correct directory"
+    # Verify files folder exists
+    if (-not (Test-Path $FilesPath)) {
+        Write-Log "files folder not found: $FilesPath" "ERROR" "Red"
+        Write-Log "Please ensure the script is run from the correct directory" "ERROR" "Red"
         exit 1
     }
 
@@ -391,20 +416,27 @@ function Main {
         try {
             $result = & $step
             if (-not $result) {
-                Write-Error "Step failed. Aborting playbook execution."
+                Write-Log "Step failed. Aborting deployment execution." "ERROR" "Red"
                 exit 1
             }
         } catch {
-            Write-Error "Step encountered an error: $_"
+            Write-Log "Step encountered an error: $_" "ERROR" "Red"
             exit 1
         }
 
         Write-Host ""
     }
 
-    Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host "BOOTSTRAP COMPLETED SUCCESSFULLY" -ForegroundColor Green
-    Write-Host "========================================" -ForegroundColor Cyan
+    $EndTime = Get-Date
+    $Duration = $EndTime - $StartTime
+
+    Write-Log "========================================" "INFO" "Cyan"
+    Write-Log "TWINCAT DEPLOYMENT COMPLETED SUCCESSFULLY" "INFO" "Green"
+    Write-Log "========================================" "INFO" "Cyan"
+    Write-Log "Started: $StartTime" "INFO" "Yellow"
+    Write-Log "Completed: $EndTime" "INFO" "Yellow"
+    Write-Log "Duration: $($Duration.ToString('hh\\:mm\\:ss'))" "INFO" "Yellow"
+    Write-Log "Log saved to: $LogFile" "INFO" "Yellow"
 }
 
 # Execute main function

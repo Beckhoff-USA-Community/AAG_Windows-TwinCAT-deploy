@@ -1,14 +1,14 @@
-# Exclude all contents of artifacts subdirectories but keep the folder structure
-artifacts/TCPKG PACKAGES/**
-artifacts/POWERSHELL MODULES/**
-artifacts/TWINCAT BOOT FOLDER/**
-artifacts/HMI PROJECTS/**
+# Exclude all contents of files subdirectories but keep the folder structure
+files/TCPKG PACKAGES/**
+files/POWERSHELL MODULES/**
+files/TWINCAT BOOT FOLDER/**
+files/HMI PROJECTS/**
 
 # Keep the .gitkeep files to preserve folder structure
-!artifacts/TCPKG PACKAGES/.gitkeep
-!artifacts/POWERSHELL MODULES/.gitkeep
-!artifacts/TWINCAT BOOT FOLDER/.gitkeep
-!artifacts/HMI PROJECTS/.gitkeep
+!files/TCPKG PACKAGES/.gitkeep
+!files/POWERSHELL MODULES/.gitkeep
+!files/TWINCAT BOOT FOLDER/.gitkeep
+!files/HMI PROJECTS/.gitkeep
 
 # Keep README file for documentation
-!artifacts/README.md
+!files/README.md

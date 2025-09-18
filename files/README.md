@@ -1,16 +1,16 @@
-# TwinCAT Installation Artifacts
+# TwinCAT Installation files
 
-This directory contains all the artifacts needed for automated TwinCAT installation and configuration. The playbook script will automatically detect and use the first folder found in each subdirectory.
+This directory contains all the files needed for automated TwinCAT installation and configuration. The twincat-deploy script will automatically detect and use the first folder found in each subdirectory.
 
 ## Directory Structure
 
 ```
-artifacts/
+files/
 ├── README.md                           # This documentation file
 ├── TCPKG PACKAGES/                     # Offline TwinCAT packages
 │   └── [your-package-folder]/          # ← Place your TcPkg packages here
 │       ├── TwinCAT.Standard.XAR
-│       ├── TF20000.HMIServer.XAR
+│       ├── TF2000.HMIServer.XAR
 │       └── [other packages]
 ├── POWERSHELL MODULES/                 # PowerShell modules for automation
 │   ├── [TcXaeMgmt]/                    # ← Place TcXaeMgmt module here
@@ -32,7 +32,7 @@ artifacts/
 
 1. **Populate each directory** according to the sections below
 2. **Verify completeness** - ensure all required files are present
-3. **Run the playbook** - execute `playbook.ps1` to automate the installation
+3. **Run the deployment script** - execute `twincat-deploy.ps1` to automate the installation
 
 ---
 
@@ -49,7 +49,7 @@ Place a folder containing TwinCAT package files (folder name can be anything, e.
 TCPKG PACKAGES/
 └── [any-folder-name]/
     ├── TwinCAT.Standard.XAR
-    ├── TF20000.HMIServer.XAR
+    ├── TF2000.HMIServer.XAR
     ├── TF1200.UiClient.XAR
     ├── [other .XAR packages]
     └── [any TwinCAT package]
@@ -61,7 +61,7 @@ TCPKG PACKAGES/
 ```bash
 # Download to specific directory (recommended)
 tcpkg download TwinCAT.Standard.XAR -o "C:\packagesoffline"
-tcpkg download TF20000.HMIServer.XAR -o "C:\packagesoffline"
+tcpkg download TF2000.HMIServer.XAR -o "C:\packagesoffline"
 tcpkg download TF1200.UiClient.XAR -o "C:\packagesoffline"
 ```
 
@@ -71,7 +71,7 @@ tcpkg download TF1200.UiClient.XAR -o "C:\packagesoffline"
 3. Use the download/export functionality to save packages to a folder
 
 
-### Playbook Usage
+### Deployment Usage
 The script will:
 1. Find the first folder in `TCPKG PACKAGES/`
 2. Copy it to `C:\packagesoffline`
@@ -86,13 +86,13 @@ The script will:
 <summary><h2>🔧 POWERSHELL MODULES</h2></summary>
 
 ### Purpose
-Contains PowerShell modules required for TwinCAT management and automation. While not strictly required, this playbook script utilizes the [TcXaeMgmt module](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/3972231819.html?id=8731138690123386389) and its [Set-RTimeCpuSettings](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/15420204939.html?id=2616515314222608422) commandlet for CPU core isolation configuration.
+Contains PowerShell modules required for TwinCAT management and automation. While not strictly required, this deployment script utilizes the [TcXaeMgmt module](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/3972231819.html?id=8731138690123386389) and its [Set-RTimeCpuSettings](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/15420204939.html?id=2616515314222608422) commandlet for CPU core isolation configuration.
 
 **Alternative Approach**: Core isolation can be configured without this module using [this example script](https://github.com/Beckhoff/windows-tools/blob/main/ConfigureBasicSystem_Sample/TwinCAT/Activate_Core_Isolation.ps1).
 
 **Additional Resources**: For a comprehensive list of TcXaeMgmt features, see the [official documentation](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/11227002123.html?id=4658283848064243519).
 
-**Extensibility**: Additional PowerShell modules can be added to this directory and will be automatically installed by the playbook.
+**Extensibility**: Additional PowerShell modules can be added to this directory and will be automatically installed by the deployment script.
 
 ### Required Structure
 Place PowerShell module folders (can contain multiple modules):
@@ -116,7 +116,7 @@ Save-Module -Name TcXaeMgmt -Path "C:\temp\SavedModules"
 **Method 2 - Existing Installation:**
 Copy from: `C:\Program Files\WindowsPowerShell\Modules\TcXaeMgmt`
 
-### Playbook Usage
+### Deployment Usage
 The script will:
 1. Copy all module folders to `C:\Program Files\WindowsPowerShell\7\Modules\`
 2. Set execution policy to RemoteSigned
@@ -162,7 +162,7 @@ Copy contents from: `C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot\`
 - Contains all necessary runtime configuration for your specific project
 
 
-### Playbook Usage
+### Deployment Usage
 The script will:
 1. Find the first folder in `TWINCAT BOOT FOLDER/`
 2. Copy it to `C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot\`
@@ -213,7 +213,7 @@ Copy from an existing working HMI system using the same procedure (stop service 
 - **[project-folder]/logger.db**: HMI logging database
 - **TcHmiSrv.Service.Config.json**: Server configuration (ports, security, etc.)
 
-### Playbook Usage
+### Deployment Usage
 The script will:
 1. Find the first project folder in `HMI PROJECTS/`
 2. Copy its contents to `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\`
@@ -225,7 +225,7 @@ The script will:
 
 ## Target Environment
 
-These artifacts are designed for:
+These files are designed for:
 - **Hardware**: CX20x3 Windows 11 x64
 - **TwinCAT**: Version compatible with TcPkg 2.1.134
 - **Use Case**: Offline/air-gapped installations
