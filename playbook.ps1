@@ -236,7 +236,7 @@ function Step-InstallRealtimeDriver {
 }
 
 # Set TwinCAT to start in run mode
-function Step-SetTwinCATRunMode {
+function Step-SetTwinCATRunModeOnBoot {
     Write-Host "Configuring TwinCAT to start in run mode..." -ForegroundColor Green
 
     # Determine registry path based on architecture
@@ -380,7 +380,7 @@ function Main {
         { Step-SetCoreIsolation },
         { Step-RenameEthernetAdapters },
         { Step-InstallRealtimeDriver },
-        { Step-SetTwinCATRunMode },
+        { Step-SetTwinCATRunModeOnBoot },
         { Step-CopyTwinCATBoot },
         { Step-CopyHMIProject },
         { Step-CopyHMIConfig },
