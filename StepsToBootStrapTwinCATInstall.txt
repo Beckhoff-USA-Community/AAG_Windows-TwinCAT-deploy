@@ -1,0 +1,99 @@
+Enviorment: CX20x3 W11 x64 without Tc image (CX1800-1191-1017_v2025-01-0004V)
+Image contains TcPkg version 2.1.134
+
+Older Images like CX20x3 W10 2021 LTSC image (CX1800-0991-1017_2024-02-00046) require a migratre step and a reboot.
+For this script - we are only considering the W11 enviorment.
+
+
+Steps:
+
+1. Copy the "packagesoffline" folder to c:\packagesoffline.
+Source folder: artifcats\"packagesoffline" 
+Target locaiton: c:\packagesoffline
+
+2. add a package source to TcPkg:
+tcpkg source add -n=local -s="c:\packagesoffline" --priority=1 
+
+3. Install required packages
+tcpkg install TwinCAT.Standard.XAR -y
+tcpkg install TF20000.HMIServer.XAR -y
+tcpkg install TF1200.UiClient.XAR -y
+
+
+4. Install TcXaeMgmt Powershell module
+(Obtained by downloading the latest version from a PC with internet acsess via "Save-Module -Name TcXaeMgmt -Path C:\temp\TcXaeMgmt")
+Source: artifcats\TcXaeMgmt 
+Target folder:C:\Program Files\WindowsPowerShell\7\Modules\
+
+5.Set execution policy
+Set-ExecutionPolicy RemoteSigned
+
+6.Import-Module TcXaeMgmt
+
+7. Set Core Isolation
+Set-RTimeCpuSettings -SharedCores 3 -force
+
+
+Altertative to this without using TcXaeMgmt:
+############################
+## Isolate Cores
+############################
+
+# This script isolates one CPU core
+$logicalProcessors = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+$logicalProcessorsNew = $logicalProcessors - 1
+Start-Process -Wait -WindowStyle Hidden -FilePath "bcdedit" -ArgumentList "/set numproc $logicalProcessorsNew"
+
+Write-Host "Script execution finished. Changed from $logicalProcessors core to $logicalProcessorsNew shared core and 1 isolated core."
+Write-Host "Press ENTER to continue and restart the system. Otherwise just clone this window."
+Read-Host
+Restart-Computer
+
+############################
+
+
+
+8. Rename Ethernet adapaters
+Rename-NetAdapter -Name "Ethernet 4" -NewName "Feildbus"
+Rename-NetAdapter -Name "Ethernet 3" -NewName "Programing"
+
+
+9. Install realtime Etherner driver
+start-process -wait "C:\Program Files (x86)\Beckhoff\TwinCAT\3.1\System\TcRteInstall.exe" -ArgumentList "-installfilter Feildbus"
+
+
+10. Set TwinCAT to start in run mode on reboot.
+
+#####################################
+## Activate TwinCAT Run Mode on Boot
+#####################################
+
+# Check os architecture
+if ([System.Environment]::Is64BitProcess) {
+$RegPath = "HKLM:\SOFTWARE\WOW6432Node\Beckhoff\TwinCAT3\System"
+} 
+else {
+$RegPath = "HKLM:\SOFTWARE\Beckhoff\TwinCAT3\System"
+}
+
+# Set reg key
+Set-ItemProperty $RegPath "SysStartupState" -Value 5 -type DWord -PassThru
+
+############################
+
+
+11. Copy TwinCAT boot folder to target
+Source folder: artifcats\TwinCAT RT (x64)
+target folder: C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot
+
+12. Copy TwinCAT HMI published project to service folder
+source folder: artifcats\HMI
+target location:C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\
+
+13. Copy the TwinCAT HMI Server json config file to target 
+Source file: artifcats\TcHmiSrv.Service.Config
+Target location:C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\
+
+
+
+14. Reboot

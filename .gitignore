@@ -1,0 +1,14 @@
+# Exclude all contents of artifacts subdirectories but keep the folder structure
+artifacts/HMI/*
+artifacts/TcXaeMgmt/*
+artifacts/packagesoffline/*
+artifacts/TwinCAT RT (x64)/*
+
+# Keep the .gitkeep files to preserve folder structure
+!artifacts/HMI/.gitkeep
+!artifacts/TcXaeMgmt/.gitkeep
+!artifacts/packagesoffline/.gitkeep
+!artifacts/TwinCAT RT (x64)/.gitkeep
+
+# Keep the config file
+!artifacts/TcHmiSrv.Service.Config.json
