@@ -317,28 +317,47 @@ function Step-CopyTwinCATBoot {
 
 # Copy HMI project to service folder
 function Step-CopyHMIProject {
-    Write-Host "Copying HMI project to service folder..." -ForegroundColor Green
+    Write-Host "Copying HMI projects to service folder..." -ForegroundColor Green
 
     $hmiBasePath = Join-Path $FilesPath "HMI PROJECTS"
-    $hmiFolders = Get-ChildItem -Path $hmiBasePath -Directory | Where-Object { $_.Name -ne ".git" }
+    $hmiFolders = Get-ChildItem -Path $hmiBasePath -Directory | Where-Object { $_.Name -ne ".git" -and $_.Name -ne "TcHmiSrv.Service.Config.json" }
 
     if ($hmiFolders.Count -eq 0) {
         Write-Error "No HMI project folders found in: $hmiBasePath"
         return $false
     }
 
-    $sourcePath = $hmiFolders[0].FullName
-    $targetPath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service"
+    $servicePath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service"
+    New-Item -Path $servicePath -ItemType Directory -Force | Out-Null
 
-    Write-Host "  Found HMI project: $($hmiFolders[0].Name)"
+    Write-Host "  Found $($hmiFolders.Count) HMI project(s):"
 
-    Write-Host "  Source: $sourcePath"
-    Write-Host "  Target: $targetPath"
+    $success = $true
+    foreach ($hmiFolder in $hmiFolders) {
+        $sourcePath = $hmiFolder.FullName
+        $targetPath = Join-Path $servicePath $hmiFolder.Name
 
-    New-Item -Path $targetPath -ItemType Directory -Force | Out-Null
-    Copy-Item "$sourcePath\*" $targetPath -Recurse -Force
-    Write-Host "  ✓ HMI project '$($hmiFolders[0].Name)' copied successfully" -ForegroundColor Green
+        Write-Host "    Copying: $($hmiFolder.Name)"
+        Write-Host "      Source: $sourcePath"
+        Write-Host "      Target: $targetPath"
 
+        try {
+            if (Test-Path $targetPath) {
+                Remove-Item $targetPath -Recurse -Force
+            }
+            Copy-Item $sourcePath $targetPath -Recurse
+            Write-Host "      ✓ $($hmiFolder.Name) copied successfully" -ForegroundColor Green
+        } catch {
+            Write-Error "Failed to copy HMI project $($hmiFolder.Name): $_"
+            $success = $false
+        }
+    }
+
+    if (-not $success) {
+        return $false
+    }
+
+    Write-Host "  ✓ All HMI projects copied successfully" -ForegroundColor Green
     return $true
 }
 
