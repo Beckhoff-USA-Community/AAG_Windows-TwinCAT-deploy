@@ -1,6 +1,0 @@
-# Place published HMI project files here
-# Typical structure:
-# - www/ (published HMI web files)
-# - storage.db
-# - logger.db
-# - Other HMI runtime files

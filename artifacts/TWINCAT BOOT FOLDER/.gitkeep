@@ -1,0 +1,7 @@
+# Place TwinCAT boot configuration folder here
+# Expected structure:
+# [boot-folder-name]/  (e.g., "TwinCAT RT (x64)")
+# ├── CurrentConfig.xml
+# ├── Port_851.xml
+# ├── TcRegistry.xml
+# └── [PLC project files and I/O config]

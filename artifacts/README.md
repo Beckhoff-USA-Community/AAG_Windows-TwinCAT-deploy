@@ -6,10 +6,26 @@ This directory contains all the artifacts needed for automated TwinCAT installat
 
 ```
 artifacts/
-├── TCPKG PACKAGES/          # Offline TwinCAT packages
-├── POWERSHELL MODULES/      # PowerShell modules for automation
-├── TWINCAT BOOT FOLDER/     # Runtime configuration
-└── HMI PROJECTS/           # HMI projects and configuration
+├── README.md                           # This documentation file
+├── TCPKG PACKAGES/                     # Offline TwinCAT packages
+│   └── [your-package-folder]/          # ← Place your TcPkg packages here
+│       ├── TwinCAT.Standard.XAR
+│       ├── TF20000.HMIServer.XAR
+│       └── [other packages]
+├── POWERSHELL MODULES/                 # PowerShell modules for automation
+│   ├── [TcXaeMgmt]/                    # ← Place TcXaeMgmt module here
+│   └── [other-modules]/                # ← Additional modules as needed
+├── TWINCAT BOOT FOLDER/                # Runtime configuration
+│   └── [your-boot-folder]/             # ← Place TwinCAT boot folder here
+│       ├── CurrentConfig.xml
+│       ├── Port_851.app
+│       └── [project files]
+└── HMI PROJECTS/                       # HMI projects and configuration
+    ├── TcHmiSrv.Service.Config.json    # ← Place HMI server config here
+    └── [your-hmi-project]/             # ← Place HMI project folder here
+        ├── www/
+        ├── storage.db
+        └── [web server files]
 ```
 
 ## Setup Instructions

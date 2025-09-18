@@ -1,0 +1,5 @@
+# Place PowerShell module folders here
+# Required:
+# TcXaeMgmt/ (for core isolation configuration)
+#
+# Optional: Additional PowerShell modules as needed

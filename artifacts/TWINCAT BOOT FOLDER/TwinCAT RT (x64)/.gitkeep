@@ -1,6 +1,0 @@
-# Place TwinCAT boot configuration files here
-# Required files:
-# - CurrentConfig.xml
-# - Port_851.xml
-# - TcRegistry.xml
-# - PLC project files and I/O configuration
