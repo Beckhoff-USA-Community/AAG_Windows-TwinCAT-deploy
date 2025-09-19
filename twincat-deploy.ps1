@@ -41,10 +41,43 @@ function Write-Log {
     Add-Content -Path $LogFile -Value $logEntry -Encoding UTF8
 }
 
+# Check for Administrator privileges and elevate if needed
+function Test-IsElevated {
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    return $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+if (-not (Test-IsElevated)) {
+    Write-Log "Administrator privileges required. Elevating script..." "WARN"
+
+    # Get the script path and arguments
+    $scriptPath = $MyInvocation.MyCommand.Path
+    $arguments = @()
+
+    # Preserve the SkipReboot parameter
+    if ($SkipReboot) {
+        $arguments += "-SkipReboot"
+    }
+
+    try {
+        # Start elevated PowerShell process
+        $argumentString = if ($arguments.Count -gt 0) { "-File `"$scriptPath`" " + ($arguments -join " ") } else { "-File `"$scriptPath`"" }
+        Start-Process -FilePath "powershell.exe" -ArgumentList $argumentString -Verb RunAs -Wait
+        Write-Log "Elevated script completed successfully" "SUCCESS"
+        exit 0
+    } catch {
+        Write-Log "Failed to elevate script: $_" "ERROR"
+        Write-Log "Please run PowerShell as Administrator and try again." "ERROR"
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+}
+
 # Start deployment
 Write-Log "========================================" "HEADER"
 Write-Log "TwinCAT Deployment Script" "HEADER"
 Write-Log "========================================" "HEADER"
+Write-Log "Running with Administrator privileges: $(Test-IsElevated)" "WARN"
 Write-Log "Started at: $StartTime" "WARN"
 Write-Log "Log file: $LogFile" "WARN"
 Write-Log ""
@@ -391,18 +424,14 @@ function Step-ConfigureTF1200 {
         $config = $configContent | ConvertFrom-Json
 
         # Update the startUrl
-        $config.startUrl = "https://127.0.0.1:2020/"
+        $config.startUrl = "http://127.0.0.1:2010/"
 
         # Write back the modified config
         $configJson = $config | ConvertTo-Json -Depth 10
         $configJson | Set-Content -Path $configFile -Encoding UTF8
 
-        Write-Log "  ✓ TF1200 UI Client startUrl updated to: https://127.0.0.1:2020/" "SUCCESS"
-
-        # Restart TF1200 UI Client with the new configuration (hidden window)
-        Write-Log "  Restarting TF1200 UI Client with new configuration..."
-        Start-Process -FilePath $tf1200Exe -WindowStyle Hidden
-        Write-Log "  ✓ TF1200 UI Client restarted" "SUCCESS"
+        Write-Log "  ✓ TF1200 UI Client startUrl updated to: http://127.0.0.1:2010/" "SUCCESS"
+        Write-Log "  ✓ TF1200 configuration complete. UI Client will use new URL on next launch." "SUCCESS"
 
     } catch {
         Write-Error "Failed to configure TF1200 UI Client: $_"
