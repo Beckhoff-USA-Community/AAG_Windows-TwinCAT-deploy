@@ -17,7 +17,7 @@ This repository contains automation scripts and artifacts for configuring a Twin
 
 ## Target Environment
 
-- CX20x3 Windows 11 x64 without TwinCAT image (CX1800-1191-1017_v2025-01-0004V)
+- Windows 11 x64 devices without TwinCAT (tested on CX2043 with CX1800-1191-1017_v2025-01-0004V image)
 - Contains TcPkg version 2.1.134
 - Designed for offline/air-gapped installations
 - Requires PowerShell 7 for TcXaeMgmt module compatibility
