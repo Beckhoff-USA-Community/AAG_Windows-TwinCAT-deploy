@@ -14,7 +14,6 @@ This repository contains automation scripts and artifacts for configuring a Twin
   - `TWINCAT BOOT FOLDER/TwinCAT RT (x64)/` - TwinCAT boot configuration with CurrentConfig.xml
   - `HMI PROJECTS/HMI/` - Complete HMI project with www folder structure
   - `HMI PROJECTS/TcHmiSrv.Service.Config.json` - HMI Server configuration
-  - `LICENSE/` - TwinCAT license files (optional, for full functionality)
 
 ## Target Environment
 
@@ -48,7 +47,6 @@ The script automatically renames network adapters for TwinCAT fieldbus operation
 
 ### Runtime Paths (Deployment Targets)
 - TwinCAT Boot: `C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot`
-- TwinCAT License: `C:\ProgramData\Beckhoff\TwinCAT\3.1\License`
 - HMI Service: `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\`
 - HMI Config: `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\`
 - Package Cache: `C:\packagesoffline`
@@ -60,7 +58,6 @@ The script automatically renames network adapters for TwinCAT fieldbus operation
 - Packages: `files\TCPKG PACKAGES\packagesoffline`
 - Boot Config: `files\TWINCAT BOOT FOLDER\TwinCAT RT (x64)`
 - HMI Projects: `files\HMI PROJECTS`
-- License Files: `files\LICENSE`
 
 ## Registry Configuration
 
@@ -115,7 +112,6 @@ The script executes these steps in a specific order to ensure proper system conf
    - `Step-CopyTwinCATBoot` - Deploy boot configuration files
    - `Step-CopyHMIProject` - Deploy HMI project files
    - `Step-CopyHMIConfig` - Deploy HMI server configuration
-   - `Step-CopyTwinCATLicense` - Install license files (if present)
 
 4. **UI Client Setup**
    - `Step-ConfigureTF1200` - Configure TF1200 UI Client

@@ -380,51 +380,6 @@ function Step-CopyHMIConfig {
     return $true
 }
 
-# Copy TwinCAT License files
-function Step-CopyTwinCATLicense {
-    Write-Log "Copying TwinCAT license files..." "SUCCESS"
-
-    $licenseBasePath = Join-Path $FilesPath "LICENSE"
-    $targetPath = "C:\ProgramData\Beckhoff\TwinCAT\3.1\License"
-
-    Write-Log "  Source: $licenseBasePath"
-    Write-Log "  Target: $targetPath"
-
-    # Check if source license folder exists
-    if (-not (Test-Path $licenseBasePath)) {
-        Write-Error "License folder not found: $licenseBasePath"
-        return $false
-    }
-
-    # Get license files
-    $licenseFiles = Get-ChildItem -Path $licenseBasePath -File -Recurse
-
-    if ($licenseFiles.Count -eq 0) {
-        Write-Log "  No license files found in: $licenseBasePath" "WARN"
-        return $true
-    }
-
-    # Create target directory if it doesn't exist
-    New-Item -Path $targetPath -ItemType Directory -Force | Out-Null
-
-    try {
-        # Copy all license files
-        Copy-Item "$licenseBasePath\*" $targetPath -Recurse -Force
-        Write-Log "  ✓ Copied $($licenseFiles.Count) license file(s) successfully" "SUCCESS"
-
-        # List the copied files for verification
-        foreach ($file in $licenseFiles) {
-            $relativePath = $file.FullName.Substring($licenseBasePath.Length + 1)
-            Write-Log "    - $relativePath"
-        }
-
-    } catch {
-        Write-Error "Failed to copy license files: $_"
-        return $false
-    }
-
-    return $true
-}
 
 # Configure TF1200 UI Client
 function Step-ConfigureTF1200 {
@@ -596,7 +551,6 @@ function Main {
         { Step-CopyTwinCATBoot },
         { Step-CopyHMIProject },
         { Step-CopyHMIConfig },
-        { Step-CopyTwinCATLicense },
         { Step-ConfigureTF1200 },
         { Step-ConfigureTF1200AutoLaunch },
         { Step-RebootSystem }
