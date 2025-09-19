@@ -1,6 +1,6 @@
 # TwinCAT USB Installation Package
 
-A plug-and-play automation solution for deploying TwinCAT industrial systems on Windows devices. Simply prepare your USB drive, connect to the target system, and run the deployment script.
+A plug-and-play automation solution for configuring the Windows environment, installing TwinCAT packages, and deploying application code. Simply prepare your USB drive, connect to the target system, and run the deployment script.
 
 ## How It Works
 
@@ -25,7 +25,7 @@ A plug-and-play automation solution for deploying TwinCAT industrial systems on 
 
 Comprehensive PowerShell automation tool that executes in phases:
 - **Package Management**: Install TwinCAT runtime components
-- **System Configuration**: CPU isolation, network setup, realtime drivers
+- **System Configuration**: CPU isolation, network setup, real-time drivers
 - **TwinCAT Configuration**: Boot setup, HMI deployment
 - **UI Client Setup**: Configuration and auto-launch
 
