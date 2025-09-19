@@ -1,4 +1,4 @@
-# TwinCAT USB Installation Package
+# Windows TwinCAT Deploy
 
 A plug-and-play automation solution for configuring the Windows environment, installing TwinCAT packages, and deploying application code. Simply prepare your USB drive, connect to the target system, and run the deployment script.
 
