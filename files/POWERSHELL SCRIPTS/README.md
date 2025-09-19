@@ -176,3 +176,9 @@ For additional Windows system configuration scripts and automation examples, vis
 🔗 **[Beckhoff Windows Tools](https://github.com/Beckhoff/windows-tools)**
 
 This repository contains PowerShell scripts for various TwinCAT and Windows configuration tasks that can be adapted for use in your modular deployment structure.
+
+---
+
+## ⚠️ Disclaimer
+
+All sample code provided by Beckhoff Automation LLC are for illustrative purposes only and are provided "as is" and without any warranties, express or implied. Actual implementations in applications will vary significantly. Beckhoff Automation LLC shall have no liability for, and does not waive any rights in relation to, any code samples that it provides or the use of such code samples for any purpose.
