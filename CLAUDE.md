@@ -9,7 +9,6 @@ This repository contains automation scripts and artifacts for configuring a Twin
 ## Repository Structure
 
 - `twincat-deploy.ps1` - Main deployment script that automates the entire TwinCAT installation process
-- `StepsToBootStrapTwinCATInstall.txt` - Detailed manual installation steps that serve as the reference for automation
 - `files/` - Contains all required installation components organized by function:
   - `TCPKG PACKAGES/packagesoffline/` - Offline TwinCAT packages (*.XAR files)
   - `TWINCAT BOOT FOLDER/TwinCAT RT (x64)/` - TwinCAT boot configuration with CurrentConfig.xml
@@ -99,9 +98,28 @@ The `twincat-deploy.ps1` script follows a modular step-based architecture:
 - Direct bcdedit approach for reliable core isolation configuration
 
 ### Deployment Flow
-The script executes steps in a specific order to ensure proper system configuration:
-1. Package management (copy, configure source, install)
-2. System configuration (core isolation via bcdedit, network adapters, drivers)
-3. TwinCAT configuration (startup state, boot files, HMI deployment, license installation)
-4. UI Client setup (TF1200 configuration and auto-launch)
-5. System restart to apply changes (optional, skipped by default)
+The script executes these steps in a specific order to ensure proper system configuration:
+
+1. **Package Management**
+   - `Step-CopyPackagesOffline` - Copy packages to local cache
+   - `Step-AddPackageSource` - Configure tcpkg source
+   - `Step-InstallPackages` - Install all TwinCAT packages
+
+2. **System Configuration**
+   - `Step-SetCoreIsolation` - Configure CPU core isolation via bcdedit
+   - `Step-RenameEthernetAdapters` - Rename network adapters for fieldbus
+   - `Step-InstallRealtimeDriver` - Install TwinCAT realtime driver
+
+3. **TwinCAT Configuration**
+   - `Step-SetTwinCATRunModeOnBoot` - Set registry for run mode startup
+   - `Step-CopyTwinCATBoot` - Deploy boot configuration files
+   - `Step-CopyHMIProject` - Deploy HMI project files
+   - `Step-CopyHMIConfig` - Deploy HMI server configuration
+   - `Step-CopyTwinCATLicense` - Install license files (if present)
+
+4. **UI Client Setup**
+   - `Step-ConfigureTF1200` - Configure TF1200 UI Client
+   - `Step-ConfigureTF1200AutoLaunch` - Set UI Client auto-launch
+
+5. **System Restart** (optional, skipped by default)
+   - `Step-RebootSystem` - Restart to apply all changes
