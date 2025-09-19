@@ -112,94 +112,24 @@ function Step-InstallPackages {
     return $true
 }
 
-# Install PowerShell modules
-function Step-InstallTcXaeMgmt {
-    Write-Log "Installing PowerShell modules..." "INFO" "Green"
-
-    $modulesBasePath = Join-Path $FilesPath "POWERSHELL MODULES"
-    $modulesFolders = Get-ChildItem -Path $modulesBasePath -Directory | Where-Object { $_.Name -ne ".git" }
-
-    if ($modulesFolders.Count -eq 0) {
-        Write-Error "No PowerShell modules found in: $modulesBasePath"
-        return $false
-    }
-
-    $success = $true
-    foreach ($moduleFolder in $modulesFolders) {
-        $sourcePath = $moduleFolder.FullName
-        $targetPath = "C:\Program Files\WindowsPowerShell\7\Modules\$($moduleFolder.Name)"
-
-        Write-Log "  Installing module: $($moduleFolder.Name)"
-
-        Write-Log "    Source: $sourcePath"
-        Write-Log "    Target: $targetPath"
-
-        try {
-            if (Test-Path $targetPath) {
-                Remove-Item $targetPath -Recurse -Force
-            }
-            New-Item -Path (Split-Path $targetPath) -ItemType Directory -Force | Out-Null
-            Copy-Item $sourcePath $targetPath -Recurse
-            Write-Log "    ✓ $($moduleFolder.Name) module installed successfully" "INFO" "Green"
-        } catch {
-            Write-Error "Failed to install module $($moduleFolder.Name): $_"
-            $success = $false
-        }
-    }
-
-    if (-not $success) {
-        return $false
-    }
-
-    return $true
-}
-
-# Set execution policy
-function Step-SetExecutionPolicy {
-    Write-Log "Setting PowerShell execution policy..." "INFO" "Green"
-
-    try {
-        Set-ExecutionPolicy RemoteSigned -Force
-        Write-Log "  ✓ Execution policy set to RemoteSigned" "INFO" "Green"
-    } catch {
-        Write-Error "Failed to set execution policy: $_"
-        return $false
-    }
-
-    return $true
-}
-
-# Import TcXaeMgmt module
-function Step-ImportModule {
-    Write-Log "Importing TcXaeMgmt module..." "INFO" "Green"
-
-    try {
-        Import-Module TcXaeMgmt -Force
-        Write-Log "  ✓ TcXaeMgmt module imported successfully" "INFO" "Green"
-    } catch {
-        Write-Error "Failed to import TcXaeMgmt module: $_"
-        return $false
-    }
-
-    return $true
-}
-
 # Set Core Isolation
 function Step-SetCoreIsolation {
     Write-Log "Configuring CPU core isolation..." "INFO" "Green"
 
+    # Isolate one CPU core using bcdedit
+    $logicalProcessors = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+    $logicalProcessorsNew = $logicalProcessors - 1
+
+    Write-Log "  Total logical processors: $logicalProcessors"
+    Write-Log "  Configuring shared processors: $logicalProcessorsNew"
+    Write-Log "  Command: bcdedit /set numproc $logicalProcessorsNew"
+
     try {
-        Set-RTimeCpuSettings -SharedCores 3 -force
-        Write-Log "  ✓ Core isolation configured (3 shared cores)" "INFO" "Green"
-    } catch {
-        Write-Warning "TcXaeMgmt method failed, using alternative approach..."
-
-        # Alternative method using bcdedit
-        $logicalProcessors = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
-        $logicalProcessorsNew = $logicalProcessors - 1
-
-        Start-Process -Wait -WindowStyle Hidden -FilePath "bcdedit" -ArgumentList "/set numproc $logicalProcessorsNew"
+        Start-Process -Wait -WindowStyle Hidden -FilePath "bcdedit" -ArgumentList "/set", "numproc", "$logicalProcessorsNew"
         Write-Log "  ✓ Core isolation configured: $logicalProcessors -> $logicalProcessorsNew shared cores" "INFO" "Green"
+    } catch {
+        Write-Error "Failed to configure core isolation: $_"
+        return $false
     }
 
     return $true
@@ -417,9 +347,6 @@ function Main {
         { Step-CopyPackagesOffline },
         { Step-AddPackageSource },
         { Step-InstallPackages },
-        { Step-InstallTcXaeMgmt },
-        { Step-SetExecutionPolicy },
-        { Step-ImportModule },
         { Step-SetCoreIsolation },
         { Step-RenameEthernetAdapters },
         { Step-InstallRealtimeDriver },

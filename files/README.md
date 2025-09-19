@@ -12,9 +12,6 @@ files/
 │       ├── TwinCAT.Standard.XAR
 │       ├── TF2000.HMIServer.XAR
 │       └── [other packages]
-├── POWERSHELL MODULES/                 # PowerShell modules for automation
-│   ├── [TcXaeMgmt]/                    # ← Place TcXaeMgmt module here
-│   └── [other-modules]/                # ← Additional modules as needed
 ├── TWINCAT BOOT FOLDER/                # Runtime configuration
 │   └── [your-boot-folder]/             # ← Place TwinCAT boot folder here
 │       ├── CurrentConfig.xml
@@ -81,50 +78,6 @@ The script will:
 2. Copy it to `C:\packagesoffline`
 3. Add it as a local package source with priority 1
 4. Install the required packages using `tcpkg install`
-
-</details>
-
----
-
-<details>
-<summary><h2>🔧 POWERSHELL MODULES</h2></summary>
-
-### Purpose
-Contains PowerShell modules required for TwinCAT management and automation. While not strictly required, this deployment script utilizes the [TcXaeMgmt module](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/3972231819.html?id=8731138690123386389) and its [Set-RTimeCpuSettings](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/15420204939.html?id=2616515314222608422) commandlet for CPU core isolation configuration.
-
-**Alternative Approach**: Core isolation can be configured without this module using [this example script](https://github.com/Beckhoff/windows-tools/blob/main/ConfigureBasicSystem_Sample/TwinCAT/Activate_Core_Isolation.ps1).
-
-**Additional Resources**: For a comprehensive list of TcXaeMgmt features, see the [official documentation](https://infosys.beckhoff.com/content/1033/tc3_ads_ps_tcxaemgmt/11227002123.html?id=4658283848064243519).
-
-**Extensibility**: Additional PowerShell modules can be added to this directory and will be automatically installed by the deployment script.
-
-### Required Structure
-Place PowerShell module folders (can contain multiple modules):
-
-```
-POWERSHELL MODULES/
-├── TcXaeMgmt/              # Primary module for TwinCAT management
-│   ├── TcXaeMgmt.psd1
-│   ├── TcXaeMgmt.psm1
-│   └── [other module files]
-└── [other-modules]/        # Additional modules as needed
-```
-
-### How to Obtain
-
-**Method 1 - PowerShell Gallery:**
-```powershell
-Save-Module -Name TcXaeMgmt -Path "C:\temp\SavedModules"
-```
-
-**Method 2 - Existing Installation:**
-Copy from: `C:\Program Files\WindowsPowerShell\Modules\TcXaeMgmt`
-
-### Deployment Usage
-The script will:
-1. Copy all module folders to `C:\Program Files\WindowsPowerShell\7\Modules\`
-2. Set execution policy to RemoteSigned
-3. Import TcXaeMgmt module for core isolation configuration
 
 </details>
 

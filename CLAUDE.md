@@ -12,7 +12,6 @@ This repository contains automation scripts and artifacts for configuring a Twin
 - `StepsToBootStrapTwinCATInstall.txt` - Detailed manual installation steps that serve as the reference for automation
 - `files/` - Contains all required installation components organized by function:
   - `TCPKG PACKAGES/packagesoffline/` - Offline TwinCAT packages (*.XAR files)
-  - `POWERSHELL MODULES/TcXaeMgmt/` - PowerShell module for TwinCAT management (v7.0.31)
   - `TWINCAT BOOT FOLDER/TwinCAT RT (x64)/` - TwinCAT boot configuration with CurrentConfig.xml
   - `HMI PROJECTS/HMI/` - Complete HMI project with www folder structure
   - `HMI PROJECTS/TcHmiSrv.Service.Config.json` - HMI Server configuration
@@ -51,7 +50,6 @@ The script automatically renames network adapters for TwinCAT fieldbus operation
 - TwinCAT Boot: `C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot`
 - HMI Service: `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\`
 - HMI Config: `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\`
-- PowerShell Modules: `C:\Program Files\WindowsPowerShell\7\Modules\`
 - Package Cache: `C:\packagesoffline`
 - Realtime Driver: `C:\Program Files (x86)\Beckhoff\TwinCAT\3.1\System\TcRteInstall.exe`
 
@@ -59,7 +57,6 @@ The script automatically renames network adapters for TwinCAT fieldbus operation
 - Script Root: `$PSScriptRoot` (base directory for twincat-deploy.ps1)
 - Files Root: `$PSScriptRoot\files` (all deployment artifacts)
 - Packages: `files\TCPKG PACKAGES\packagesoffline`
-- Modules: `files\POWERSHELL MODULES`
 - Boot Config: `files\TWINCAT BOOT FOLDER\TwinCAT RT (x64)`
 - HMI Projects: `files\HMI PROJECTS`
 
@@ -79,8 +76,7 @@ TwinCAT startup state is controlled via registry:
 ### Manual Testing/Debugging
 - `tcpkg source list` - View configured package sources
 - `tcpkg list --local` - List locally installed packages
-- `Get-Module -ListAvailable TcXaeMgmt` - Check if TcXaeMgmt module is available
-- `Set-RTimeCpuSettings -SharedCores 3 -force` - Configure CPU core isolation
+- `bcdedit` - View current boot configuration including processor settings
 - `Get-NetAdapter` - List network adapters for renaming verification
 
 ## Script Architecture
@@ -97,12 +93,11 @@ The `twincat-deploy.ps1` script follows a modular step-based architecture:
 - File path validation before operations
 - Automatic cleanup of existing installations before new deployments
 - Platform-aware registry path selection (32-bit vs 64-bit)
-- Graceful fallbacks (e.g., bcdedit when TcXaeMgmt core isolation fails)
+- Direct bcdedit approach for reliable core isolation configuration
 
 ### Deployment Flow
 The script executes steps in a specific order to ensure proper system configuration:
 1. Package management (copy, configure source, install)
-2. PowerShell environment setup (modules, execution policy)
-3. System configuration (core isolation, network adapters, drivers)
-4. TwinCAT configuration (startup state, boot files, HMI deployment)
-5. System restart to apply changes
+2. System configuration (core isolation via bcdedit, network adapters, drivers)
+3. TwinCAT configuration (startup state, boot files, HMI deployment)
+4. System restart to apply changes (optional, skipped by default)
