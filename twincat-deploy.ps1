@@ -346,8 +346,8 @@ function Step-ConfigureTF1200 {
         Write-Log "  Config file not found, launching TF1200 UI Client to create initial config..."
 
         try {
-            # Start TF1200 UI Client
-            $tf1200Process = Start-Process -FilePath $tf1200Exe -PassThru
+            # Start TF1200 UI Client (hidden window, no console output)
+            $tf1200Process = Start-Process -FilePath $tf1200Exe -WindowStyle Hidden -PassThru
             Write-Log "  TF1200 UI Client started (PID: $($tf1200Process.Id))"
 
             # Wait for config file to be created (max 30 seconds)
@@ -399,9 +399,9 @@ function Step-ConfigureTF1200 {
 
         Write-Log "  ✓ TF1200 UI Client startUrl updated to: https://127.0.0.1:2020/" "SUCCESS"
 
-        # Restart TF1200 UI Client with the new configuration
+        # Restart TF1200 UI Client with the new configuration (hidden window)
         Write-Log "  Restarting TF1200 UI Client with new configuration..."
-        Start-Process -FilePath $tf1200Exe
+        Start-Process -FilePath $tf1200Exe -WindowStyle Hidden
         Write-Log "  ✓ TF1200 UI Client restarted" "SUCCESS"
 
     } catch {
@@ -524,7 +524,7 @@ function Main {
     Write-Log "========================================" "HEADER"
     Write-Log "Started: $StartTime" "WARN"
     Write-Log "Completed: $EndTime" "WARN"
-    Write-Log "Duration: $($Duration.ToString('hh\\:mm\\:ss'))" "WARN"
+    Write-Log "Duration: $($Duration.ToString('hh\:mm\:ss'))" "WARN"
     Write-Log "Log saved to: $LogFile" "WARN"
 }
 
