@@ -18,12 +18,21 @@ $StartTime = Get-Date
 function Write-Log {
     param(
         [string]$Message,
-        [string]$Level = "INFO",
-        [string]$Color = "White"
+        [string]$Level = "INFO"
     )
 
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $logEntry = "[$timestamp] [$Level] $Message"
+
+    # Determine color based on log level
+    $Color = switch ($Level) {
+        "ERROR" { "Red" }
+        "WARN" { "Yellow" }
+        "SUCCESS" { "Green" }
+        "INFO" { "White" }
+        "HEADER" { "Cyan" }
+        default { "White" }
+    }
 
     # Write to console with color
     Write-Host $Message -ForegroundColor $Color
@@ -33,29 +42,29 @@ function Write-Log {
 }
 
 # Start deployment
-Write-Log "========================================" "INFO" "Cyan"
-Write-Log "TwinCAT Deployment Script" "INFO" "Cyan"
-Write-Log "========================================" "INFO" "Cyan"
-Write-Log "Started at: $StartTime" "INFO" "Yellow"
-Write-Log "Log file: $LogFile" "INFO" "Yellow"
+Write-Log "========================================" "HEADER"
+Write-Log "TwinCAT Deployment Script" "HEADER"
+Write-Log "========================================" "HEADER"
+Write-Log "Started at: $StartTime" "WARN"
+Write-Log "Log file: $LogFile" "WARN"
 Write-Log ""
 
 # Copy packagesoffline folder
 function Step-CopyPackagesOffline {
-    Write-Log "Copying TcPkg packages folder..." "INFO" "Green"
+    Write-Log "Copying TcPkg packages folder..." "SUCCESS"
 
     $tcpkgBasePath = Join-Path $FilesPath "TCPKG PACKAGES"
     $packagesFolders = Get-ChildItem -Path $tcpkgBasePath -Directory | Where-Object { $_.Name -ne ".git" }
 
     if ($packagesFolders.Count -eq 0) {
-        Write-Log "No package folders found in: $tcpkgBasePath" "ERROR" "Red"
+        Write-Log "No package folders found in: $tcpkgBasePath" "ERROR"
         return $false
     }
 
     $sourcePath = $packagesFolders[0].FullName
     $targetPath = "C:\packagesoffline"
 
-    Write-Log "  Found packages folder: $($packagesFolders[0].Name)" "INFO" "White"
+    Write-Log "  Found packages folder: $($packagesFolders[0].Name)"
 
     Write-Log "  Source: $sourcePath"
     Write-Log "  Target: $targetPath"
@@ -64,20 +73,20 @@ function Step-CopyPackagesOffline {
         Remove-Item $targetPath -Recurse -Force
     }
     Copy-Item $sourcePath $targetPath -Recurse
-    Write-Log "  ✓ Packages copied successfully" "INFO" "Green"
+    Write-Log "  ✓ Packages copied successfully" "SUCCESS"
 
     return $true
 }
 
 # Add package source to TcPkg
 function Step-AddPackageSource {
-    Write-Log "Adding local package source to TcPkg..." "INFO" "Green"
+    Write-Log "Adding local package source to TcPkg..." "SUCCESS"
 
     Write-Log "  Command: tcpkg source add -n=local -s=\"c:\packagesoffline\" --priority=1"
 
     try {
         Start-Process -Wait -WindowStyle Hidden -FilePath "tcpkg" -ArgumentList "source", "add", "-n=local", "-s=c:\packagesoffline", "--priority=1"
-        Write-Log "  ✓ Package source added successfully" "INFO" "Green"
+        Write-Log "  ✓ Package source added successfully" "SUCCESS"
     } catch {
         Write-Error "Failed to add package source: $_"
         return $false
@@ -88,7 +97,7 @@ function Step-AddPackageSource {
 
 # Install required packages
 function Step-InstallPackages {
-    Write-Log "Installing required TwinCAT packages..." "INFO" "Green"
+    Write-Log "Installing required TwinCAT packages..." "SUCCESS"
 
     $packages = @(
         "TwinCAT.Standard.XAR",
@@ -102,7 +111,7 @@ function Step-InstallPackages {
 
         try {
             Start-Process -Wait -WindowStyle Hidden -FilePath "tcpkg" -ArgumentList "install", $package, "-y"
-            Write-Log "  ✓ $package installed successfully" "INFO" "Green"
+            Write-Log "  ✓ $package installed successfully" "SUCCESS"
         } catch {
             Write-Error "Failed to install $package : $_"
             return $false
@@ -114,7 +123,7 @@ function Step-InstallPackages {
 
 # Set Core Isolation
 function Step-SetCoreIsolation {
-    Write-Log "Configuring CPU core isolation..." "INFO" "Green"
+    Write-Log "Configuring CPU core isolation..." "SUCCESS"
 
     # Isolate one CPU core using bcdedit
     $logicalProcessors = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
@@ -126,7 +135,7 @@ function Step-SetCoreIsolation {
 
     try {
         Start-Process -Wait -WindowStyle Hidden -FilePath "bcdedit" -ArgumentList "/set", "numproc", "$logicalProcessorsNew"
-        Write-Log "  ✓ Core isolation configured: $logicalProcessors -> $logicalProcessorsNew shared cores" "INFO" "Green"
+        Write-Log "  ✓ Core isolation configured: $logicalProcessors -> $logicalProcessorsNew shared cores" "SUCCESS"
     } catch {
         Write-Error "Failed to configure core isolation: $_"
         return $false
@@ -137,7 +146,7 @@ function Step-SetCoreIsolation {
 
 # Rename Ethernet adapters
 function Step-RenameEthernetAdapters {
-    Write-Log "Renaming Ethernet adapters..." "INFO" "Green"
+    Write-Log "Renaming Ethernet adapters..." "SUCCESS"
 
     $adapterMappings = @{
         "Ethernet 4" = "Fieldbus"
@@ -152,7 +161,7 @@ function Step-RenameEthernetAdapters {
             $adapter = Get-NetAdapter -Name $oldName -ErrorAction SilentlyContinue
             if ($adapter) {
                 Rename-NetAdapter -Name $oldName -NewName $newName
-                Write-Log "  ✓ Renamed $oldName to $newName" "INFO" "Green"
+                Write-Log "  ✓ Renamed $oldName to $newName" "SUCCESS"
             } else {
                 Write-Warning "Adapter '$oldName' not found, skipping..."
             }
@@ -166,7 +175,7 @@ function Step-RenameEthernetAdapters {
 
 # Install realtime Ethernet driver
 function Step-InstallRealtimeDriver {
-    Write-Log "Installing realtime Ethernet driver..." "INFO" "Green"
+    Write-Log "Installing realtime Ethernet driver..." "SUCCESS"
 
     $driverPath = "C:\Program Files (x86)\Beckhoff\TwinCAT\3.1\System\TcRteInstall.exe"
     $arguments = "-installfilter Fieldbus"
@@ -177,7 +186,7 @@ function Step-InstallRealtimeDriver {
     if (Test-Path $driverPath) {
         try {
             Start-Process -Wait $driverPath -ArgumentList $arguments
-            Write-Log "  ✓ Realtime Ethernet driver installed" "INFO" "Green"
+            Write-Log "  ✓ Realtime Ethernet driver installed" "SUCCESS"
         } catch {
             Write-Error "Failed to install realtime driver: $_"
             return $false
@@ -191,7 +200,7 @@ function Step-InstallRealtimeDriver {
 
 # Set TwinCAT to start in run mode
 function Step-SetTwinCATRunModeOnBoot {
-    Write-Log "Configuring TwinCAT to start in run mode..." "INFO" "Green"
+    Write-Log "Configuring TwinCAT to start in run mode..." "SUCCESS"
 
     # Determine registry path based on architecture
     if ([System.Environment]::Is64BitProcess) {
@@ -205,7 +214,7 @@ function Step-SetTwinCATRunModeOnBoot {
 
     try {
         Set-ItemProperty $RegPath "SysStartupState" -Value 5 -Type DWord -PassThru
-        Write-Log "  ✓ TwinCAT configured for run mode on boot" "INFO" "Green"
+        Write-Log "  ✓ TwinCAT configured for run mode on boot" "SUCCESS"
     } catch {
         Write-Error "Failed to set TwinCAT startup state: $_"
         return $false
@@ -216,7 +225,7 @@ function Step-SetTwinCATRunModeOnBoot {
 
 # Copy TwinCAT boot folder
 function Step-CopyTwinCATBoot {
-    Write-Log "Copying TwinCAT boot folder..." "INFO" "Green"
+    Write-Log "Copying TwinCAT boot folder..." "SUCCESS"
 
     $bootBasePath = Join-Path $FilesPath "TWINCAT BOOT FOLDER"
     $bootFolders = Get-ChildItem -Path $bootBasePath -Directory | Where-Object { $_.Name -ne ".git" }
@@ -239,14 +248,14 @@ function Step-CopyTwinCATBoot {
         Remove-Item $targetPath -Recurse -Force
     }
     Copy-Item $sourcePath $targetPath -Recurse
-    Write-Log "  ✓ TwinCAT boot folder copied successfully" "INFO" "Green"
+    Write-Log "  ✓ TwinCAT boot folder copied successfully" "SUCCESS"
 
     return $true
 }
 
 # Copy HMI project to service folder
 function Step-CopyHMIProject {
-    Write-Log "Copying HMI projects to service folder..." "INFO" "Green"
+    Write-Log "Copying HMI projects to service folder..." "SUCCESS"
 
     $hmiBasePath = Join-Path $FilesPath "HMI PROJECTS"
     $hmiFolders = Get-ChildItem -Path $hmiBasePath -Directory | Where-Object { $_.Name -ne ".git" -and $_.Name -ne "TcHmiSrv.Service.Config.json" }
@@ -275,7 +284,7 @@ function Step-CopyHMIProject {
                 Remove-Item $targetPath -Recurse -Force
             }
             Copy-Item $sourcePath $targetPath -Recurse
-            Write-Log "      ✓ $($hmiFolder.Name) copied successfully" "INFO" "Green"
+            Write-Log "      ✓ $($hmiFolder.Name) copied successfully" "SUCCESS"
         } catch {
             Write-Error "Failed to copy HMI project $($hmiFolder.Name): $_"
             $success = $false
@@ -286,13 +295,13 @@ function Step-CopyHMIProject {
         return $false
     }
 
-    Write-Log "  ✓ All HMI projects copied successfully" "INFO" "Green"
+    Write-Log "  ✓ All HMI projects copied successfully" "SUCCESS"
     return $true
 }
 
 # Copy HMI Server config file
 function Step-CopyHMIConfig {
-    Write-Log "Copying HMI Server configuration..." "INFO" "Green"
+    Write-Log "Copying HMI Server configuration..." "SUCCESS"
 
     $sourceFile = Join-Path $FilesPath "HMI PROJECTS\TcHmiSrv.Service.Config.json"
     $targetPath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server"
@@ -308,21 +317,154 @@ function Step-CopyHMIConfig {
 
     New-Item -Path $targetPath -ItemType Directory -Force | Out-Null
     Copy-Item $sourceFile $targetFile -Force
-    Write-Log "  ✓ HMI Server config copied successfully" "INFO" "Green"
+    Write-Log "  ✓ HMI Server config copied successfully" "SUCCESS"
+
+    return $true
+}
+
+# Configure TF1200 UI Client
+function Step-ConfigureTF1200 {
+    Write-Log "Configuring TF1200 UI Client..." "SUCCESS"
+
+    $configPath = "$env:APPDATA\Beckhoff\TF1200-UI-Client"
+    $configFile = Join-Path $configPath "config.json"
+    $tf1200Exe = "C:\Program Files (x86)\Beckhoff\TwinCAT\Functions\TF1200-UI-Client\TF1200-UI-Client.exe"
+
+    Write-Log "  Config path: $configPath"
+    Write-Log "  Config file: $configFile"
+    Write-Log "  TF1200 executable: $tf1200Exe"
+
+    # Check if TF1200 executable exists
+    if (-not (Test-Path $tf1200Exe)) {
+        Write-Error "TF1200 UI Client executable not found: $tf1200Exe"
+        Write-Error "Please ensure TF1200.UiClient.XAR package is installed"
+        return $false
+    }
+
+    # If config file doesn't exist, launch TF1200 to create it
+    if (-not (Test-Path $configFile)) {
+        Write-Log "  Config file not found, launching TF1200 UI Client to create initial config..."
+
+        try {
+            # Start TF1200 UI Client
+            $tf1200Process = Start-Process -FilePath $tf1200Exe -PassThru
+            Write-Log "  TF1200 UI Client started (PID: $($tf1200Process.Id))"
+
+            # Wait for config file to be created (max 30 seconds)
+            $timeout = 30
+            $elapsed = 0
+            while (-not (Test-Path $configFile) -and $elapsed -lt $timeout) {
+                Start-Sleep -Seconds 1
+                $elapsed++
+                if ($elapsed % 5 -eq 0) {
+                    Write-Log "  Waiting for config file creation... ($elapsed/$timeout seconds)"
+                }
+            }
+
+            if (-not (Test-Path $configFile)) {
+                Write-Error "Config file was not created after $timeout seconds"
+                # Kill the process if it's still running
+                if (-not $tf1200Process.HasExited) {
+                    $tf1200Process.Kill()
+                }
+                return $false
+            }
+
+            Write-Log "  Config file created successfully"
+
+            # Kill the TF1200 process so we can modify the config
+            if (-not $tf1200Process.HasExited) {
+                $tf1200Process.Kill()
+                $tf1200Process.WaitForExit(5000)  # Wait up to 5 seconds for clean exit
+                Write-Log "  TF1200 UI Client stopped"
+            }
+
+        } catch {
+            Write-Error "Failed to launch TF1200 UI Client: $_"
+            return $false
+        }
+    }
+
+    try {
+        # Read existing config.json
+        $configContent = Get-Content -Path $configFile -Raw -Encoding UTF8
+        $config = $configContent | ConvertFrom-Json
+
+        # Update the startUrl
+        $config.startUrl = "https://127.0.0.1:2020/"
+
+        # Write back the modified config
+        $configJson = $config | ConvertTo-Json -Depth 10
+        $configJson | Set-Content -Path $configFile -Encoding UTF8
+
+        Write-Log "  ✓ TF1200 UI Client startUrl updated to: https://127.0.0.1:2020/" "SUCCESS"
+
+        # Restart TF1200 UI Client with the new configuration
+        Write-Log "  Restarting TF1200 UI Client with new configuration..."
+        Start-Process -FilePath $tf1200Exe
+        Write-Log "  ✓ TF1200 UI Client restarted" "SUCCESS"
+
+    } catch {
+        Write-Error "Failed to configure TF1200 UI Client: $_"
+        return $false
+    }
+
+    return $true
+}
+
+# Configure TF1200 Auto-Launch
+function Step-ConfigureTF1200AutoLaunch {
+    Write-Log "Configuring TF1200 UI Client auto-launch..." "SUCCESS"
+
+    $sourceShortcut = "C:\Users\Public\Desktop\TwinCAT UI Client.lnk"
+    $startupPath = "C:\Program Files (x86)\Beckhoff\TwinCAT\3.1\Target\StartUp"
+    $targetShortcut = Join-Path $startupPath "TwinCAT UI Client.lnk"
+
+    Write-Log "  Source shortcut: $sourceShortcut"
+    Write-Log "  Startup folder: $startupPath"
+    Write-Log "  Target shortcut: $targetShortcut"
+
+    # Check if source shortcut exists
+    if (-not (Test-Path $sourceShortcut)) {
+        Write-Error "TF1200 shortcut not found: $sourceShortcut"
+        Write-Error "Please ensure TF1200.UiClient.XAR package is installed"
+        return $false
+    }
+
+    # Create startup directory if it doesn't exist
+    if (-not (Test-Path $startupPath)) {
+        try {
+            New-Item -Path $startupPath -ItemType Directory -Force | Out-Null
+            Write-Log "  Created startup directory: $startupPath"
+        } catch {
+            Write-Error "Failed to create startup directory: $_"
+            return $false
+        }
+    }
+
+    try {
+        # Copy the shortcut to the startup folder
+        Copy-Item $sourceShortcut $targetShortcut -Force
+        Write-Log "  ✓ TF1200 UI Client shortcut copied to TwinCAT startup folder" "SUCCESS"
+        Write-Log "  ✓ TF1200 UI Client will now auto-launch with TwinCAT system" "SUCCESS"
+    } catch {
+        Write-Error "Failed to copy TF1200 shortcut: $_"
+        return $false
+    }
 
     return $true
 }
 
 # Reboot system
 function Step-RebootSystem {
-    Write-Log "System reboot..." "INFO" "Green"
+    Write-Log "System reboot..." "SUCCESS"
 
     if ($SkipReboot) {
-        Write-Log "  Reboot skipped (--SkipReboot specified)" "INFO" "Yellow"
+        Write-Log "  Reboot skipped (--SkipReboot specified)" "WARN"
         return $true
     }
 
-    Write-Log "  System will reboot in 10 seconds..." "INFO" "Yellow"
+    Write-Log "  System will reboot in 10 seconds..." "WARN"
     Write-Log "  Press Ctrl+C to cancel"
     Start-Sleep -Seconds 10
     Restart-Computer -Force
@@ -332,13 +474,13 @@ function Step-RebootSystem {
 
 # Main execution
 function Main {
-    Write-Log "Starting TwinCAT deployment process..." "INFO" "White"
+    Write-Log "Starting TwinCAT deployment process..."
     Write-Log ""
 
     # Verify files folder exists
     if (-not (Test-Path $FilesPath)) {
-        Write-Log "files folder not found: $FilesPath" "ERROR" "Red"
-        Write-Log "Please ensure the script is run from the correct directory" "ERROR" "Red"
+        Write-Log "files folder not found: $FilesPath" "ERROR"
+        Write-Log "Please ensure the script is run from the correct directory" "ERROR"
         exit 1
     }
 
@@ -354,6 +496,8 @@ function Main {
         { Step-CopyTwinCATBoot },
         { Step-CopyHMIProject },
         { Step-CopyHMIConfig },
+        { Step-ConfigureTF1200 },
+        { Step-ConfigureTF1200AutoLaunch },
         { Step-RebootSystem }
     )
 
@@ -361,11 +505,11 @@ function Main {
         try {
             $result = & $step
             if (-not $result) {
-                Write-Log "Step failed. Aborting deployment execution." "ERROR" "Red"
+                Write-Log "Step failed. Aborting deployment execution." "ERROR"
                 exit 1
             }
         } catch {
-            Write-Log "Step encountered an error: $_" "ERROR" "Red"
+            Write-Log "Step encountered an error: $_" "ERROR"
             exit 1
         }
 
@@ -375,13 +519,13 @@ function Main {
     $EndTime = Get-Date
     $Duration = $EndTime - $StartTime
 
-    Write-Log "========================================" "INFO" "Cyan"
-    Write-Log "TWINCAT DEPLOYMENT COMPLETED SUCCESSFULLY" "INFO" "Green"
-    Write-Log "========================================" "INFO" "Cyan"
-    Write-Log "Started: $StartTime" "INFO" "Yellow"
-    Write-Log "Completed: $EndTime" "INFO" "Yellow"
-    Write-Log "Duration: $($Duration.ToString('hh\\:mm\\:ss'))" "INFO" "Yellow"
-    Write-Log "Log saved to: $LogFile" "INFO" "Yellow"
+    Write-Log "========================================" "HEADER"
+    Write-Log "TWINCAT DEPLOYMENT COMPLETED SUCCESSFULLY" "SUCCESS"
+    Write-Log "========================================" "HEADER"
+    Write-Log "Started: $StartTime" "WARN"
+    Write-Log "Completed: $EndTime" "WARN"
+    Write-Log "Duration: $($Duration.ToString('hh\\:mm\\:ss'))" "WARN"
+    Write-Log "Log saved to: $LogFile" "WARN"
 }
 
 # Execute main function
