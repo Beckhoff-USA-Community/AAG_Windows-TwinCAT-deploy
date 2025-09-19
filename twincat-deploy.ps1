@@ -182,8 +182,7 @@ function Step-RenameEthernetAdapters {
     Write-Log "Renaming Ethernet adapters..." "SUCCESS"
 
     $adapterMappings = @{
-        "Ethernet 4" = "Fieldbus"
-        "Ethernet 3" = "Programming"
+        "X001" = "Fieldbus"
     }
 
     foreach ($oldName in $adapterMappings.Keys) {
@@ -211,24 +210,50 @@ function Step-InstallRealtimeDriver {
     Write-Log "Installing realtime Ethernet driver..." "SUCCESS"
 
     $driverPath = "C:\Program Files (x86)\Beckhoff\TwinCAT\3.1\System\TcRteInstall.exe"
-    $arguments = "-installfilter Fieldbus"
+    $adapterName = "Fieldbus"  # This should match the renamed adapter
 
     Write-Log "  Driver: $driverPath"
-    Write-Log "  Arguments: $arguments"
+    Write-Log "  Target adapter: $adapterName"
 
-    if (Test-Path $driverPath) {
-        try {
-            Start-Process -Wait $driverPath -ArgumentList $arguments
-            Write-Log "  ✓ Realtime Ethernet driver installed" "SUCCESS"
-        } catch {
-            Write-Error "Failed to install realtime driver: $_"
-            return $false
-        }
-    } else {
-        Write-Warning "TcRteInstall.exe not found at expected location"
+    if (-not (Test-Path $driverPath)) {
+        Write-Error "TcRteInstall.exe not found at: $driverPath"
+        return $false
     }
 
-    return $true
+    # Method 1: Try -installnic first (preferred method)
+    $installnicArgs = "-installnic `"$adapterName`" /S"
+    Write-Log "  Method 1 - Arguments: $installnicArgs"
+
+    try {
+        $process = Start-Process -Wait -FilePath $driverPath -ArgumentList "-installnic", "`"$adapterName`"", "/S" -PassThru
+        if ($process.ExitCode -eq 0) {
+            Write-Log "  ✓ Realtime Ethernet driver installed using -installnic method" "SUCCESS"
+            return $true
+        } else {
+            Write-Log "  Method 1 failed with exit code: $($process.ExitCode)" "WARN"
+        }
+    } catch {
+        Write-Log "  Method 1 failed with exception: $_" "WARN"
+    }
+
+    # Method 2: Fallback to -installfilter (legacy method)
+    Write-Log "  Attempting fallback method..." "WARN"
+    $installfilterArgs = "-installfilter $adapterName"
+    Write-Log "  Method 2 - Arguments: $installfilterArgs"
+
+    try {
+        $process = Start-Process -Wait -FilePath $driverPath -ArgumentList "-installfilter", $adapterName -PassThru
+        if ($process.ExitCode -eq 0) {
+            Write-Log "  ✓ Realtime Ethernet driver installed using -installfilter method" "SUCCESS"
+            return $true
+        } else {
+            Write-Error "Method 2 also failed with exit code: $($process.ExitCode)"
+            return $false
+        }
+    } catch {
+        Write-Error "Both installation methods failed. Final error: $_"
+        return $false
+    }
 }
 
 # Set TwinCAT to start in run mode
