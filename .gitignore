@@ -1,14 +1,14 @@
 # Exclude all contents of files subdirectories but keep the folder structure
 files/TCPKG PACKAGES/**
-files/POWERSHELL MODULES/**
 files/TWINCAT BOOT FOLDER/**
 files/HMI PROJECTS/**
+files/LICENSE/**
 
 # Keep the .gitkeep files to preserve folder structure
 !files/TCPKG PACKAGES/.gitkeep
-!files/POWERSHELL MODULES/.gitkeep
 !files/TWINCAT BOOT FOLDER/.gitkeep
 !files/HMI PROJECTS/.gitkeep
+!files/LICENSE/.gitkeep
 
 # Keep README file for documentation
 !files/README.md

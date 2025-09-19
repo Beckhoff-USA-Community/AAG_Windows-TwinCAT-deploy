@@ -17,16 +17,20 @@ files/
 │       ├── CurrentConfig.xml
 │       ├── Port_851.app
 │       └── [project files]
-└── HMI PROJECTS/                       # HMI projects and configuration
-    ├── TcHmiSrv.Service.Config.json    # ← Place HMI server config here
-    ├── [hmi-project-1]/                # ← Place HMI project folders here
-    │   ├── www/
-    │   ├── storage.db
-    │   └── [web server files]
-    └── [hmi-project-2]/                # ← Multiple projects supported
-        ├── www/
-        ├── storage.db
-        └── [web server files]
+├── HMI PROJECTS/                       # HMI projects and configuration
+│   ├── TcHmiSrv.Service.Config.json    # ← Place HMI server config here
+│   ├── [hmi-project-1]/                # ← Place HMI project folders here
+│   │   ├── www/
+│   │   ├── storage.db
+│   │   └── [web server files]
+│   └── [hmi-project-2]/                # ← Multiple projects supported
+│       ├── www/
+│       ├── storage.db
+│       └── [web server files]
+└── LICENSE/                            # TwinCAT license files (optional)
+    ├── TwinCAT.lic                     # ← Place license files here
+    ├── TF2000.lic                      # ← Function license files
+    └── [other-licenses.lic]            # ← Additional licenses as needed
 ```
 
 ## Setup Instructions
@@ -184,6 +188,54 @@ The script will:
 1. Find all project folders in `HMI PROJECTS/` (excluding config files)
 2. Copy each project folder to `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\[project-name]\`
 3. Copy `TcHmiSrv.Service.Config.json` to `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\`
+
+</details>
+
+---
+
+<details>
+<summary><h2>📄 LICENSE</h2></summary>
+
+### Purpose
+Contains TwinCAT license files required for activating TwinCAT functions and features. This directory is optional - if no license files are provided, TwinCAT will run in demo/trial mode with limited functionality.
+
+### Required Structure
+```
+LICENSE/
+├── TwinCAT.lic                 # Core TwinCAT license (if needed)
+├── TF2000.lic                  # HMI Server license
+├── TF1200.lic                  # UI Client license
+├── [function-licenses.lic]     # Additional function licenses
+└── [custom-licenses.lic]       # Customer-specific licenses
+```
+
+### How to Obtain
+
+**Method 1 - Beckhoff License Portal:**
+1. Log into your Beckhoff customer account
+2. Navigate to the license management section
+3. Download the appropriate license files for your system
+4. Place the `.lic` files in the LICENSE folder
+
+**Method 2 - Existing TwinCAT System:**
+Copy license files from: `C:\ProgramData\Beckhoff\TwinCAT\3.1\License\`
+
+**Method 3 - License Server:**
+If using a license server, you may not need individual license files
+
+### Important Notes
+- **Optional**: License files are not required for basic operation (demo mode)
+- **Function-specific**: Each TwinCAT function (TF2000, TF1200, etc.) may require its own license
+- **Hardware-bound**: Some licenses are tied to specific hardware (CPU-ID, dongle)
+- **Backup**: Keep backup copies of license files in a secure location
+- **Support**: Contact Beckhoff support for licensing questions
+
+### Deployment Usage
+The script will:
+1. Check if `LICENSE/` folder exists
+2. Copy all license files recursively to `C:\ProgramData\Beckhoff\TwinCAT\3.1\License\`
+3. Log the count and names of copied license files
+4. Continue deployment if no license files are found (with warning)
 
 </details>
 

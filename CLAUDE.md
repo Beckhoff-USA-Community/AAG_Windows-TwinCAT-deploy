@@ -15,6 +15,7 @@ This repository contains automation scripts and artifacts for configuring a Twin
   - `TWINCAT BOOT FOLDER/TwinCAT RT (x64)/` - TwinCAT boot configuration with CurrentConfig.xml
   - `HMI PROJECTS/HMI/` - Complete HMI project with www folder structure
   - `HMI PROJECTS/TcHmiSrv.Service.Config.json` - HMI Server configuration
+  - `LICENSE/` - TwinCAT license files (optional, for full functionality)
 
 ## Target Environment
 
@@ -48,6 +49,7 @@ The script automatically renames network adapters for TwinCAT fieldbus operation
 
 ### Runtime Paths (Deployment Targets)
 - TwinCAT Boot: `C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot`
+- TwinCAT License: `C:\ProgramData\Beckhoff\TwinCAT\3.1\License`
 - HMI Service: `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\`
 - HMI Config: `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\`
 - Package Cache: `C:\packagesoffline`
@@ -59,6 +61,7 @@ The script automatically renames network adapters for TwinCAT fieldbus operation
 - Packages: `files\TCPKG PACKAGES\packagesoffline`
 - Boot Config: `files\TWINCAT BOOT FOLDER\TwinCAT RT (x64)`
 - HMI Projects: `files\HMI PROJECTS`
+- License Files: `files\LICENSE`
 
 ## Registry Configuration
 
@@ -99,5 +102,6 @@ The `twincat-deploy.ps1` script follows a modular step-based architecture:
 The script executes steps in a specific order to ensure proper system configuration:
 1. Package management (copy, configure source, install)
 2. System configuration (core isolation via bcdedit, network adapters, drivers)
-3. TwinCAT configuration (startup state, boot files, HMI deployment)
-4. System restart to apply changes (optional, skipped by default)
+3. TwinCAT configuration (startup state, boot files, HMI deployment, license installation)
+4. UI Client setup (TF1200 configuration and auto-launch)
+5. System restart to apply changes (optional, skipped by default)
