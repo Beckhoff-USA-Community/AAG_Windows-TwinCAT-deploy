@@ -22,7 +22,11 @@ files/
 │       └── [project files]
 └── HMI PROJECTS/                       # HMI projects and configuration
     ├── TcHmiSrv.Service.Config.json    # ← Place HMI server config here
-    └── [your-hmi-project]/             # ← Place HMI project folder here
+    ├── [hmi-project-1]/                # ← Place HMI project folders here
+    │   ├── www/
+    │   ├── storage.db
+    │   └── [web server files]
+    └── [hmi-project-2]/                # ← Multiple projects supported
         ├── www/
         ├── storage.db
         └── [web server files]
@@ -181,7 +185,13 @@ Contains TwinCAT HMI projects and server configuration for web-based interfaces 
 ### Required Structure
 ```
 HMI PROJECTS/
-├── [hmi-project-name]/           # Any name (e.g., "HMI", "MyHMI", "WebInterface")
+├── [hmi-project-1]/              # Any name (e.g., "HMI", "MyHMI", "WebInterface")
+│   ├── www/
+│   │   └── [published HMI files]
+│   ├── storage.db
+│   ├── logger.db
+│   └── [other HMI runtime files]
+├── [hmi-project-2]/              # Multiple projects supported
 │   ├── www/
 │   │   └── [published HMI files]
 │   ├── storage.db
@@ -193,18 +203,21 @@ HMI PROJECTS/
 ### How to Obtain
 
 **HMI Project Files:**
-1. **Publish your TwinCAT HMI project** to the local TF2000 instance using TE2000 HMI Engineering
+1. **Publish your TwinCAT HMI projects** to the local TF2000 instance using TE2000 HMI Engineering
 2. **Stop the TwinCAT HMI service** or disable the HMI server instance through the [TwinCAT HMI Service Configuration webpage](http://127.0.0.1:19800)
    - **Important**: Failure to stop the service will cause file permission issues when copying
-3. **Copy the published files** from: `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\[hmi-project-name]`
+3. **Copy each published project folder** from: `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\[hmi-project-name]`
+   - **Multiple projects**: Copy all project folders you want to deploy
+   - **Maintain folder names**: Each project folder name will be preserved in the target system
 4. **Restart the HMI service** after copying is complete
 
 **HMI Server Configuration:**
 1. **TcHmiSrv.Service.Config.json**: Copy from `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\`
-2. This file configures the HMI service to start the appropriate HMI project instance
+2. This file configures the HMI service to start the appropriate HMI project instances
+3. **Multiple projects**: The config file should reference all projects you want to run simultaneously
 
 **Alternative Method:**
-Copy from an existing working HMI system using the same procedure (stop service → copy → restart)
+Copy from an existing working HMI system using the same procedure (stop service → copy all project folders → restart)
 
 
 ### Contents Description
@@ -215,8 +228,8 @@ Copy from an existing working HMI system using the same procedure (stop service 
 
 ### Deployment Usage
 The script will:
-1. Find the first project folder in `HMI PROJECTS/`
-2. Copy its contents to `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\`
+1. Find all project folders in `HMI PROJECTS/` (excluding config files)
+2. Copy each project folder to `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service\[project-name]\`
 3. Copy `TcHmiSrv.Service.Config.json` to `C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\`
 
 </details>

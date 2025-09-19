@@ -3,7 +3,7 @@
 # Based on: StepsToBootStrapTwinCATInstall.txt
 
 param(
-    [switch]$SkipReboot
+    [switch]$SkipReboot = $true
 )
 
 # Global variables
@@ -38,7 +38,7 @@ Write-Log "TwinCAT Deployment Script" "INFO" "Cyan"
 Write-Log "========================================" "INFO" "Cyan"
 Write-Log "Started at: $StartTime" "INFO" "Yellow"
 Write-Log "Log file: $LogFile" "INFO" "Yellow"
-Write-Host ""
+Write-Log ""
 
 # Copy packagesoffline folder
 function Step-CopyPackagesOffline {
@@ -57,28 +57,27 @@ function Step-CopyPackagesOffline {
 
     Write-Log "  Found packages folder: $($packagesFolders[0].Name)" "INFO" "White"
 
-    Write-Host "  Source: $sourcePath"
-    Write-Host "  Target: $targetPath"
+    Write-Log "  Source: $sourcePath"
+    Write-Log "  Target: $targetPath"
 
     if (Test-Path $targetPath) {
         Remove-Item $targetPath -Recurse -Force
     }
     Copy-Item $sourcePath $targetPath -Recurse
-    Write-Host "  ✓ Packages copied successfully" -ForegroundColor Green
+    Write-Log "  ✓ Packages copied successfully" "INFO" "Green"
 
     return $true
 }
 
 # Add package source to TcPkg
 function Step-AddPackageSource {
-    Write-Host "Adding local package source to TcPkg..." -ForegroundColor Green
+    Write-Log "Adding local package source to TcPkg..." "INFO" "Green"
 
-    $command = 'tcpkg source add -n=local -s="c:\packagesoffline" --priority=1'
-    Write-Host "  Command: $command"
+    Write-Log "  Command: tcpkg source add -n=local -s=\"c:\packagesoffline\" --priority=1"
 
     try {
-        Invoke-Expression $command
-        Write-Host "  ✓ Package source added successfully" -ForegroundColor Green
+        Start-Process -Wait -WindowStyle Hidden -FilePath "tcpkg" -ArgumentList "source", "add", "-n=local", "-s=c:\packagesoffline", "--priority=1"
+        Write-Log "  ✓ Package source added successfully" "INFO" "Green"
     } catch {
         Write-Error "Failed to add package source: $_"
         return $false
@@ -89,7 +88,7 @@ function Step-AddPackageSource {
 
 # Install required packages
 function Step-InstallPackages {
-    Write-Host "Installing required TwinCAT packages..." -ForegroundColor Green
+    Write-Log "Installing required TwinCAT packages..." "INFO" "Green"
 
     $packages = @(
         "TwinCAT.Standard.XAR",
@@ -98,12 +97,12 @@ function Step-InstallPackages {
     )
 
     foreach ($package in $packages) {
-        $command = "tcpkg install $package -y"
-        Write-Host "  Installing: $package"
+        Write-Log "  Installing: $package"
+        Write-Log "  Command: tcpkg install $package -y"
 
         try {
-            Invoke-Expression $command
-            Write-Host "  ✓ $package installed successfully" -ForegroundColor Green
+            Start-Process -Wait -WindowStyle Hidden -FilePath "tcpkg" -ArgumentList "install", $package, "-y"
+            Write-Log "  ✓ $package installed successfully" "INFO" "Green"
         } catch {
             Write-Error "Failed to install $package : $_"
             return $false
@@ -115,7 +114,7 @@ function Step-InstallPackages {
 
 # Install PowerShell modules
 function Step-InstallTcXaeMgmt {
-    Write-Host "Installing PowerShell modules..." -ForegroundColor Green
+    Write-Log "Installing PowerShell modules..." "INFO" "Green"
 
     $modulesBasePath = Join-Path $FilesPath "POWERSHELL MODULES"
     $modulesFolders = Get-ChildItem -Path $modulesBasePath -Directory | Where-Object { $_.Name -ne ".git" }
@@ -130,10 +129,10 @@ function Step-InstallTcXaeMgmt {
         $sourcePath = $moduleFolder.FullName
         $targetPath = "C:\Program Files\WindowsPowerShell\7\Modules\$($moduleFolder.Name)"
 
-        Write-Host "  Installing module: $($moduleFolder.Name)"
+        Write-Log "  Installing module: $($moduleFolder.Name)"
 
-        Write-Host "    Source: $sourcePath"
-        Write-Host "    Target: $targetPath"
+        Write-Log "    Source: $sourcePath"
+        Write-Log "    Target: $targetPath"
 
         try {
             if (Test-Path $targetPath) {
@@ -141,7 +140,7 @@ function Step-InstallTcXaeMgmt {
             }
             New-Item -Path (Split-Path $targetPath) -ItemType Directory -Force | Out-Null
             Copy-Item $sourcePath $targetPath -Recurse
-            Write-Host "    ✓ $($moduleFolder.Name) module installed successfully" -ForegroundColor Green
+            Write-Log "    ✓ $($moduleFolder.Name) module installed successfully" "INFO" "Green"
         } catch {
             Write-Error "Failed to install module $($moduleFolder.Name): $_"
             $success = $false
@@ -157,11 +156,11 @@ function Step-InstallTcXaeMgmt {
 
 # Set execution policy
 function Step-SetExecutionPolicy {
-    Write-Host "Setting PowerShell execution policy..." -ForegroundColor Green
+    Write-Log "Setting PowerShell execution policy..." "INFO" "Green"
 
     try {
         Set-ExecutionPolicy RemoteSigned -Force
-        Write-Host "  ✓ Execution policy set to RemoteSigned" -ForegroundColor Green
+        Write-Log "  ✓ Execution policy set to RemoteSigned" "INFO" "Green"
     } catch {
         Write-Error "Failed to set execution policy: $_"
         return $false
@@ -172,11 +171,11 @@ function Step-SetExecutionPolicy {
 
 # Import TcXaeMgmt module
 function Step-ImportModule {
-    Write-Host "Importing TcXaeMgmt module..." -ForegroundColor Green
+    Write-Log "Importing TcXaeMgmt module..." "INFO" "Green"
 
     try {
         Import-Module TcXaeMgmt -Force
-        Write-Host "  ✓ TcXaeMgmt module imported successfully" -ForegroundColor Green
+        Write-Log "  ✓ TcXaeMgmt module imported successfully" "INFO" "Green"
     } catch {
         Write-Error "Failed to import TcXaeMgmt module: $_"
         return $false
@@ -187,11 +186,11 @@ function Step-ImportModule {
 
 # Set Core Isolation
 function Step-SetCoreIsolation {
-    Write-Host "Configuring CPU core isolation..." -ForegroundColor Green
+    Write-Log "Configuring CPU core isolation..." "INFO" "Green"
 
     try {
         Set-RTimeCpuSettings -SharedCores 3 -force
-        Write-Host "  ✓ Core isolation configured (3 shared cores)" -ForegroundColor Green
+        Write-Log "  ✓ Core isolation configured (3 shared cores)" "INFO" "Green"
     } catch {
         Write-Warning "TcXaeMgmt method failed, using alternative approach..."
 
@@ -200,7 +199,7 @@ function Step-SetCoreIsolation {
         $logicalProcessorsNew = $logicalProcessors - 1
 
         Start-Process -Wait -WindowStyle Hidden -FilePath "bcdedit" -ArgumentList "/set numproc $logicalProcessorsNew"
-        Write-Host "  ✓ Core isolation configured: $logicalProcessors -> $logicalProcessorsNew shared cores" -ForegroundColor Green
+        Write-Log "  ✓ Core isolation configured: $logicalProcessors -> $logicalProcessorsNew shared cores" "INFO" "Green"
     }
 
     return $true
@@ -208,7 +207,7 @@ function Step-SetCoreIsolation {
 
 # Rename Ethernet adapters
 function Step-RenameEthernetAdapters {
-    Write-Host "Renaming Ethernet adapters..." -ForegroundColor Green
+    Write-Log "Renaming Ethernet adapters..." "INFO" "Green"
 
     $adapterMappings = @{
         "Ethernet 4" = "Fieldbus"
@@ -217,13 +216,13 @@ function Step-RenameEthernetAdapters {
 
     foreach ($oldName in $adapterMappings.Keys) {
         $newName = $adapterMappings[$oldName]
-        Write-Host "  Renaming '$oldName' to '$newName'"
+        Write-Log "  Renaming '$oldName' to '$newName'"
 
         try {
             $adapter = Get-NetAdapter -Name $oldName -ErrorAction SilentlyContinue
             if ($adapter) {
                 Rename-NetAdapter -Name $oldName -NewName $newName
-                Write-Host "  ✓ Renamed $oldName to $newName" -ForegroundColor Green
+                Write-Log "  ✓ Renamed $oldName to $newName" "INFO" "Green"
             } else {
                 Write-Warning "Adapter '$oldName' not found, skipping..."
             }
@@ -237,18 +236,18 @@ function Step-RenameEthernetAdapters {
 
 # Install realtime Ethernet driver
 function Step-InstallRealtimeDriver {
-    Write-Host "Installing realtime Ethernet driver..." -ForegroundColor Green
+    Write-Log "Installing realtime Ethernet driver..." "INFO" "Green"
 
     $driverPath = "C:\Program Files (x86)\Beckhoff\TwinCAT\3.1\System\TcRteInstall.exe"
     $arguments = "-installfilter Fieldbus"
 
-    Write-Host "  Driver: $driverPath"
-    Write-Host "  Arguments: $arguments"
+    Write-Log "  Driver: $driverPath"
+    Write-Log "  Arguments: $arguments"
 
     if (Test-Path $driverPath) {
         try {
             Start-Process -Wait $driverPath -ArgumentList $arguments
-            Write-Host "  ✓ Realtime Ethernet driver installed" -ForegroundColor Green
+            Write-Log "  ✓ Realtime Ethernet driver installed" "INFO" "Green"
         } catch {
             Write-Error "Failed to install realtime driver: $_"
             return $false
@@ -262,7 +261,7 @@ function Step-InstallRealtimeDriver {
 
 # Set TwinCAT to start in run mode
 function Step-SetTwinCATRunModeOnBoot {
-    Write-Host "Configuring TwinCAT to start in run mode..." -ForegroundColor Green
+    Write-Log "Configuring TwinCAT to start in run mode..." "INFO" "Green"
 
     # Determine registry path based on architecture
     if ([System.Environment]::Is64BitProcess) {
@@ -271,12 +270,12 @@ function Step-SetTwinCATRunModeOnBoot {
         $RegPath = "HKLM:\SOFTWARE\Beckhoff\TwinCAT3\System"
     }
 
-    Write-Host "  Registry path: $RegPath"
-    Write-Host "  Setting SysStartupState = 5 (Run mode)"
+    Write-Log "  Registry path: $RegPath"
+    Write-Log "  Setting SysStartupState = 5 (Run mode)"
 
     try {
         Set-ItemProperty $RegPath "SysStartupState" -Value 5 -Type DWord -PassThru
-        Write-Host "  ✓ TwinCAT configured for run mode on boot" -ForegroundColor Green
+        Write-Log "  ✓ TwinCAT configured for run mode on boot" "INFO" "Green"
     } catch {
         Write-Error "Failed to set TwinCAT startup state: $_"
         return $false
@@ -287,7 +286,7 @@ function Step-SetTwinCATRunModeOnBoot {
 
 # Copy TwinCAT boot folder
 function Step-CopyTwinCATBoot {
-    Write-Host "Copying TwinCAT boot folder..." -ForegroundColor Green
+    Write-Log "Copying TwinCAT boot folder..." "INFO" "Green"
 
     $bootBasePath = Join-Path $FilesPath "TWINCAT BOOT FOLDER"
     $bootFolders = Get-ChildItem -Path $bootBasePath -Directory | Where-Object { $_.Name -ne ".git" }
@@ -300,24 +299,24 @@ function Step-CopyTwinCATBoot {
     $sourcePath = $bootFolders[0].FullName
     $targetPath = "C:\ProgramData\Beckhoff\TwinCAT\3.1\Boot"
 
-    Write-Host "  Found boot folder: $($bootFolders[0].Name)"
+    Write-Log "  Found boot folder: $($bootFolders[0].Name)"
 
-    Write-Host "  Source: $sourcePath"
-    Write-Host "  Target: $targetPath"
+    Write-Log "  Source: $sourcePath"
+    Write-Log "  Target: $targetPath"
 
     New-Item -Path (Split-Path $targetPath) -ItemType Directory -Force | Out-Null
     if (Test-Path $targetPath) {
         Remove-Item $targetPath -Recurse -Force
     }
     Copy-Item $sourcePath $targetPath -Recurse
-    Write-Host "  ✓ TwinCAT boot folder copied successfully" -ForegroundColor Green
+    Write-Log "  ✓ TwinCAT boot folder copied successfully" "INFO" "Green"
 
     return $true
 }
 
 # Copy HMI project to service folder
 function Step-CopyHMIProject {
-    Write-Host "Copying HMI projects to service folder..." -ForegroundColor Green
+    Write-Log "Copying HMI projects to service folder..." "INFO" "Green"
 
     $hmiBasePath = Join-Path $FilesPath "HMI PROJECTS"
     $hmiFolders = Get-ChildItem -Path $hmiBasePath -Directory | Where-Object { $_.Name -ne ".git" -and $_.Name -ne "TcHmiSrv.Service.Config.json" }
@@ -330,23 +329,23 @@ function Step-CopyHMIProject {
     $servicePath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server\service"
     New-Item -Path $servicePath -ItemType Directory -Force | Out-Null
 
-    Write-Host "  Found $($hmiFolders.Count) HMI project(s):"
+    Write-Log "  Found $($hmiFolders.Count) HMI project(s):"
 
     $success = $true
     foreach ($hmiFolder in $hmiFolders) {
         $sourcePath = $hmiFolder.FullName
         $targetPath = Join-Path $servicePath $hmiFolder.Name
 
-        Write-Host "    Copying: $($hmiFolder.Name)"
-        Write-Host "      Source: $sourcePath"
-        Write-Host "      Target: $targetPath"
+        Write-Log "    Copying: $($hmiFolder.Name)"
+        Write-Log "      Source: $sourcePath"
+        Write-Log "      Target: $targetPath"
 
         try {
             if (Test-Path $targetPath) {
                 Remove-Item $targetPath -Recurse -Force
             }
             Copy-Item $sourcePath $targetPath -Recurse
-            Write-Host "      ✓ $($hmiFolder.Name) copied successfully" -ForegroundColor Green
+            Write-Log "      ✓ $($hmiFolder.Name) copied successfully" "INFO" "Green"
         } catch {
             Write-Error "Failed to copy HMI project $($hmiFolder.Name): $_"
             $success = $false
@@ -357,13 +356,13 @@ function Step-CopyHMIProject {
         return $false
     }
 
-    Write-Host "  ✓ All HMI projects copied successfully" -ForegroundColor Green
+    Write-Log "  ✓ All HMI projects copied successfully" "INFO" "Green"
     return $true
 }
 
 # Copy HMI Server config file
 function Step-CopyHMIConfig {
-    Write-Host "Copying HMI Server configuration..." -ForegroundColor Green
+    Write-Log "Copying HMI Server configuration..." "INFO" "Green"
 
     $sourceFile = Join-Path $FilesPath "HMI PROJECTS\TcHmiSrv.Service.Config.json"
     $targetPath = "C:\ProgramData\Beckhoff\TF2000 TwinCAT 3 HMI Server"
@@ -374,27 +373,27 @@ function Step-CopyHMIConfig {
         return $false
     }
 
-    Write-Host "  Source: $sourceFile"
-    Write-Host "  Target: $targetFile"
+    Write-Log "  Source: $sourceFile"
+    Write-Log "  Target: $targetFile"
 
     New-Item -Path $targetPath -ItemType Directory -Force | Out-Null
     Copy-Item $sourceFile $targetFile -Force
-    Write-Host "  ✓ HMI Server config copied successfully" -ForegroundColor Green
+    Write-Log "  ✓ HMI Server config copied successfully" "INFO" "Green"
 
     return $true
 }
 
 # Reboot system
 function Step-RebootSystem {
-    Write-Host "System reboot..." -ForegroundColor Green
+    Write-Log "System reboot..." "INFO" "Green"
 
     if ($SkipReboot) {
-        Write-Host "  Reboot skipped (--SkipReboot specified)" -ForegroundColor Yellow
+        Write-Log "  Reboot skipped (--SkipReboot specified)" "INFO" "Yellow"
         return $true
     }
 
-    Write-Host "  System will reboot in 10 seconds..." -ForegroundColor Yellow
-    Write-Host "  Press Ctrl+C to cancel"
+    Write-Log "  System will reboot in 10 seconds..." "INFO" "Yellow"
+    Write-Log "  Press Ctrl+C to cancel"
     Start-Sleep -Seconds 10
     Restart-Computer -Force
 
@@ -404,7 +403,7 @@ function Step-RebootSystem {
 # Main execution
 function Main {
     Write-Log "Starting TwinCAT deployment process..." "INFO" "White"
-    Write-Host ""
+    Write-Log ""
 
     # Verify files folder exists
     if (-not (Test-Path $FilesPath)) {
@@ -443,7 +442,7 @@ function Main {
             exit 1
         }
 
-        Write-Host ""
+        Write-Log ""
     }
 
     $EndTime = Get-Date
