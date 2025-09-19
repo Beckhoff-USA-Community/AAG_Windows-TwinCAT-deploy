@@ -168,3 +168,11 @@ mv "files/POWERSHELL SCRIPTS/99-SystemRestart.disabled" "files/POWERSHELL SCRIPT
 ```
 
 The magic happens automatically - the main script discovers and executes whatever scripts you've placed in the numbered folders!
+
+## 📚 Additional Resources
+
+**More System Configuration Examples:**
+For additional Windows system configuration scripts and automation examples, visit the official Beckhoff repository:
+🔗 **[Beckhoff Windows Tools](https://github.com/Beckhoff/windows-tools)**
+
+This repository contains PowerShell scripts for various TwinCAT and Windows configuration tasks that can be adapted for use in your modular deployment structure.
