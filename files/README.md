@@ -1,12 +1,20 @@
 # TwinCAT Installation files
 
-This directory contains all the files needed for automated TwinCAT installation and configuration. The twincat-deploy script will automatically detect and use the first folder found in each subdirectory.
+This directory contains all the files needed for automated TwinCAT installation and configuration. The twincat-deploy script uses a modular architecture that automatically discovers and executes deployment scripts, while also detecting and using the first folder found in each subdirectory for file artifacts.
 
 ## Directory Structure
 
 ```
 files/
 ├── README.md                           # This documentation file
+├── POWERSHELL SCRIPTS/                 # 🔧 Modular deployment scripts
+│   ├── Shared/TwinCATDeployUtils.psm1  # ← Shared utilities module
+│   ├── 01-PackageManagement/           # ← Package installation scripts
+│   ├── 02-SystemConfiguration/         # ← System setup scripts
+│   ├── 03-TwinCATConfiguration/        # ← TwinCAT configuration scripts
+│   ├── 04-UIClientSetup/               # ← UI Client setup scripts
+│   ├── 99-SystemRestart/               # ← Optional reboot script
+│   └── README.md                       # ← Extensibility documentation
 ├── TCPKG PACKAGES/                     # Offline TwinCAT packages
 │   └── [your-package-folder]/          # ← Place your TcPkg packages here
 │       ├── TwinCAT.Standard.XAR
@@ -33,7 +41,79 @@ files/
 
 1. **Populate each directory** according to the sections below
 2. **Verify completeness** - ensure all required files are present
-3. **Run the deployment script** - execute `twincat-deploy.ps1` to automate the installation
+3. **Customize deployment** (optional) - add/remove PowerShell scripts as needed
+4. **Run the deployment script** - execute `twincat-deploy.ps1` to automate the installation
+
+---
+
+<details>
+<summary><h2>🔧 POWERSHELL SCRIPTS</h2></summary>
+
+### Purpose
+Contains modular PowerShell scripts that define the deployment process. The main `twincat-deploy.ps1` script automatically discovers and executes these scripts in numerical order.
+
+### Architecture
+**Fully Dynamic Discovery:**
+- Scripts organized in numbered phases (01-, 02-, 03-...)
+- Each phase contains numbered steps (01-, 02-, 03-...)
+- No hardcoded references in main script - completely plug-and-play
+
+### Current Script Structure
+```
+POWERSHELL SCRIPTS/
+├── Shared/
+│   └── TwinCATDeployUtils.psm1         # Shared utilities and functions
+├── 01-PackageManagement/               # Install TwinCAT packages
+│   ├── 01-CopyPackagesOffline.ps1
+│   ├── 02-AddPackageSource.ps1
+│   └── 03-InstallPackages.ps1
+├── 02-SystemConfiguration/             # Configure Windows system
+│   ├── 01-SetCoreIsolation.ps1
+│   ├── 02-RenameEthernetAdapters.ps1
+│   └── 03-InstallRealtimeDriver.ps1
+├── 03-TwinCATConfiguration/            # Configure TwinCAT runtime
+│   ├── 01-SetTwinCATRunModeOnBoot.ps1
+│   ├── 02-CopyTwinCATBoot.ps1
+│   ├── 03-CopyHMIProject.ps1
+│   └── 04-CopyHMIConfig.ps1
+├── 04-UIClientSetup/                   # Configure UI Client
+│   ├── 01-ConfigureTF1200.ps1
+│   └── 02-ConfigureTF1200AutoLaunch.ps1
+├── 99-SystemRestart/                   # Optional system reboot
+│   └── 01-RebootSystem.ps1
+└── README.md                           # Detailed extensibility guide
+```
+
+### Customization Options
+**Add Custom Scripts:**
+1. Create new phase folder: `05-CustomPhase/`
+2. Add scripts: `01-CustomScript.ps1`
+3. Scripts run automatically in numerical order
+
+**Control Reboot Behavior:**
+- **Enable reboot**: Keep `99-SystemRestart/` folder
+- **Skip reboot**: Delete or rename `99-SystemRestart/` folder
+
+**Modify Existing Steps:**
+- Edit individual scripts without affecting others
+- Add new steps between existing ones (e.g., `02.5-ExtraStep.ps1`)
+
+### Script Requirements
+Each script must:
+- Return `$true` on success, `$false` on failure
+- Use shared functions from `TwinCATDeployUtils.psm1`
+- Follow logging conventions with `Write-Log`
+
+### Deployment Usage
+The main script will:
+1. **Scan** for numbered phase folders
+2. **Sort** phases and steps numerically
+3. **Execute** each script in order
+4. **Abort** deployment if any script fails
+
+📖 **For complete extensibility documentation, see [`POWERSHELL SCRIPTS/README.md`](POWERSHELL%20SCRIPTS/README.md)**
+
+</details>
 
 ---
 
@@ -199,8 +279,10 @@ These files are designed for:
 
 ## Important Notes
 
-- **Flexible naming**: Folder names within each category can be customized
-- **Single folder**: Each category expects only one primary folder (except PowerShell modules)
+- **Modular Architecture**: Deployment logic is fully modular and extensible via PowerShell scripts
+- **Flexible naming**: Folder names within artifact categories can be customized
+- **Single folder**: Each artifact category expects only one primary folder
+- **Script Discovery**: PowerShell scripts are automatically discovered and executed in numerical order
 - **File sizes**: Some artifacts (especially HMI projects) can be large
 - **Versions**: Ensure artifact versions match target system requirements
-- **Security**: Review all files before deployment in production environments
+- **Security**: Review all files and scripts before deployment in production environments

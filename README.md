@@ -1,6 +1,6 @@
 # Windows TwinCAT Deploy
 
-A plug-and-play automation solution for configuring the Windows environment, installing TwinCAT packages, and deploying application code. Simply prepare your USB drive, connect to the target system, and run the deployment script.
+A plug-and-play automation solution for configuring the Windows environment, installing TwinCAT packages, and deploying application code. Built with a modular, extensible architecture that automatically discovers and executes deployment scripts. Simply prepare your USB drive, connect to the target system, and run the deployment script.
 
 ## How It Works
 
@@ -23,11 +23,18 @@ A plug-and-play automation solution for configuring the Windows environment, ins
 
 ## The `twincat-deploy.ps1` Script
 
-Comprehensive PowerShell automation tool that executes in phases:
-- **Package Management**: Install TwinCAT runtime components
-- **System Configuration**: CPU isolation, network setup, real-time drivers
-- **TwinCAT Configuration**: Boot setup, HMI deployment
-- **UI Client Setup**: Configuration and auto-launch
+Comprehensive PowerShell automation tool with **modular, extensible architecture**:
+- **🔍 Dynamic Discovery**: Automatically finds and executes deployment scripts
+- **📁 Phase-Based Execution**: Runs scripts in numbered phases (01-, 02-, 03-...)
+- **🔧 Plug-and-Play**: Add new scripts without modifying main script
+- **⚙️ Configurable**: Control deployment behavior through file presence
+
+**Current Deployment Phases:**
+- **01-PackageManagement**: Install TwinCAT runtime components
+- **02-SystemConfiguration**: CPU isolation, network setup, real-time drivers
+- **03-TwinCATConfiguration**: Boot setup, HMI deployment
+- **04-UIClientSetup**: Configuration and auto-launch
+- **99-SystemRestart**: Optional system reboot (remove folder to skip)
 
 Features robust error handling, comprehensive logging, and automatic privilege elevation.
 
@@ -39,3 +46,5 @@ Features robust error handling, comprehensive logging, and automatic privilege e
 ```
 
 📁 **For detailed setup instructions and file organization, see [`files/README.md`](files/README.md)**
+
+🔧 **For extending the deployment with custom scripts, see [`files/POWERSHELL SCRIPTS/README.md`](files/POWERSHELL%20SCRIPTS/README.md)**
