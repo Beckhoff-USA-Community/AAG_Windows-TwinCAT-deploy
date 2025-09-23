@@ -10,4 +10,9 @@ files/HMI PROJECTS/**
 
 # Keep README file for documentation
 !files/README.md
+
+# Exclude Claude Code settings (local development only)
+.claude/
+
+# Exclude CLAUDE.md (internal documentation)
 CLAUDE.md
