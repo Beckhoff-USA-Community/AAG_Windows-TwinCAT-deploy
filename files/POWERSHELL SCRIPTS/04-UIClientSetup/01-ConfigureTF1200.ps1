@@ -1,5 +1,5 @@
 # @Title: Configure TF1200 UI Client
-# @Description: Configures TF1200 UI Client startup URL and settings
+# @Description: Configures TF1200 UI Client startup URL and settings | TF1200.UiClient.XAR = 1.5.0
 # @Phase: 04-UIClientSetup
 # @Order: 01
 # @Dependencies: None

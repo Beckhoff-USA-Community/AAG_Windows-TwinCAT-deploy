@@ -270,12 +270,14 @@ The script will:
 ---
 
 
-## Target Environment
+## Test Environment Used in Development
 
-These files are designed for:
-- **Hardware**: CX20x3 Windows 11 x64
-- **TwinCAT**: Version compatible with TcPkg 2.1.134
-- **Use Case**: Offline/air-gapped installations
+- **Hardware**: CX2043 Windows 11 x64 No TwinCAT | Image: CX1800-1191-1017 2025-01-0004V
+- **TcPkg**: 2.1.134 | Default version included in the image
+- **TwinCAT Versions**
+    - TwinCAT.Standard.XAR = 4026.18.0
+    - TF2000.HMIServer.XAR = 14.7.0
+    - TF1200.UiClient.XAR = 1.5.0
 
 ## Important Notes
 
