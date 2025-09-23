@@ -1,0 +1,7 @@
+# Place TwinCAT package folder here
+# Expected structure:
+# [package-folder-name]/
+# ├── TwinCAT.Standard.XAR
+# ├── TF20000.HMIServer.XAR
+# ├── TF1200.UiClient.XAR
+# └── [other TwinCAT packages]

@@ -1,0 +1,13 @@
+# Exclude all contents of files subdirectories but keep the folder structure
+files/TCPKG PACKAGES/**
+files/TWINCAT BOOT FOLDER/**
+files/HMI PROJECTS/**
+
+# Keep the .gitkeep files to preserve folder structure
+!files/TCPKG PACKAGES/.gitkeep
+!files/TWINCAT BOOT FOLDER/.gitkeep
+!files/HMI PROJECTS/.gitkeep
+
+# Keep README file for documentation
+!files/README.md
+CLAUDE.md

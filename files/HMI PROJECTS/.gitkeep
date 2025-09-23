@@ -1,0 +1,6 @@
+# Place TwinCAT HMI project folders here
+# Expected structure:
+# [hmi-project-name]/
+# └── www/, storage.db, logger.db, etc.
+#
+# Also place TcHmiSrv.Service.Config.json in this directory
