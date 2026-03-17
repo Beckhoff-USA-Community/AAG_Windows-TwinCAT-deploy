@@ -109,7 +109,7 @@ function Invoke-ModularDeployment {
                 return $false
             }
 
-            Write-Log "✓ $($script.Name) completed successfully" "SUCCESS"
+            Write-Log "$($script.Name) completed successfully" "SUCCESS"
         }
     }
 
