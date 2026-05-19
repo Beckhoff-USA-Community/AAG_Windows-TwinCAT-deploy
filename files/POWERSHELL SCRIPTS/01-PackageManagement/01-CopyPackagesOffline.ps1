@@ -28,6 +28,6 @@ if (Test-Path $targetPath) {
     Remove-Item $targetPath -Recurse -Force
 }
 Copy-Item $sourcePath $targetPath -Recurse
-Write-Log "  ✓ Packages copied successfully" "SUCCESS"
+Write-Log "  Packages copied successfully" "SUCCESS"
 
 return $true
